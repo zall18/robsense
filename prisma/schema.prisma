@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LaporanWarga {
+  id           String   @id @default(uuid())
+  gejala       String   // "Demam" atau "Gatal-gatal"
+  kecamatan    String
+  latitude     Float?
+  longitude    Float?
+  ipAddress    String?  // Untuk rate limiting
+  createdAt    DateTime @default(now())
+}
+
+model DataCuacaGenangan {
+  id          String   @id @default(uuid())
+  kecamatan   String
+  statusRisiko String  // "Tinggi", "Sedang", "Rendah"
+  suhu        Float?
+  kelembapan  Float?
+  kondisi     String?
+  timestamp   DateTime @default(now())
+}

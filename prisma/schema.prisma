@@ -4,8 +4,6 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 model AdminUser {
@@ -27,11 +25,23 @@ model LaporanWarga {
 }
 
 model DataCuacaGenangan {
-  id          String   @id @default(uuid())
-  kecamatan   String
-  statusRisiko String  // "Tinggi", "Sedang", "Rendah"
-  suhu        Float?
-  kelembapan  Float?
-  kondisi     String?
-  timestamp   DateTime @default(now())
+  id            String   @id @default(uuid())
+  kecamatan     String
+  statusRisiko  String  // "Tinggi", "Sedang", "Rendah"
+  ketinggianAir Float?  // dalam cm
+  trendStatus   String? // "Meningkat", "Menurun", "Stabil"
+  suhu          Float?
+  kelembapan    Float?
+  kondisi       String?
+  timestamp     DateTime @default(now())
+}
+
+model ProfilKecamatan {
+  id               String   @id @default(uuid())
+  namaKecamatan    String   @unique
+  tingkatRisiko    String   // Tinggi, Sedang, Rendah
+  pendaftarEdukasi Int
+  totalPopulasi    Int
+  penggunaAirTanah Int      @default(0)
+  updatedAt        DateTime @updatedAt
 }

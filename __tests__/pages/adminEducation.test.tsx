@@ -46,7 +46,7 @@ jest.mock('@prisma/adapter-pg', () => {
 
 describe('Halaman Prioritas Edukasi', () => {
   it('berhasil merender judul, summary cards, dan tabel', async () => {
-    const PageComponent = await EducationPriorityPage();
+    const PageComponent = await EducationPriorityPage({ searchParams: Promise.resolve({}) });
     render(PageComponent);
     
     // Periksa judul

@@ -47,7 +47,7 @@ jest.mock('@prisma/adapter-pg', () => {
 
 describe('Halaman Cakupan Sumber Air', () => {
   it('berhasil merender judul, summary cards, dan tabel', async () => {
-    const PageComponent = await WaterSourcePage();
+    const PageComponent = await WaterSourcePage({ searchParams: Promise.resolve({}) });
     render(PageComponent);
     
     // Periksa judul

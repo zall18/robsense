@@ -38,7 +38,7 @@ jest.mock('@prisma/client', () => {
 describe('Halaman Riwayat Genangan', () => {
   it('berhasil melakukan render judul dan tombol aksi', async () => {
     // Render Server Component secara asinkron (React 18 / Next 13+ RSC test workaround)
-    const PageComponent = await HistoryPage();
+    const PageComponent = await HistoryPage({ searchParams: Promise.resolve({}) });
     render(PageComponent);
     
     // Periksa judul
@@ -48,7 +48,7 @@ describe('Halaman Riwayat Genangan', () => {
   });
 
   it('memuat data tabel', async () => {
-    const PageComponent = await HistoryPage();
+    const PageComponent = await HistoryPage({ searchParams: Promise.resolve({}) });
     render(PageComponent);
 
     // Periksa data tabel dirender

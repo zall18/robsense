@@ -68,7 +68,7 @@ jest.mock('@prisma/adapter-pg', () => {
 
 describe('Halaman Dashboard Utama', () => {
   it('berhasil merender semua komponen utama', async () => {
-    const PageComponent = await DashboardPage();
+    const PageComponent = await DashboardPage({ searchParams: Promise.resolve({}) });
     render(PageComponent);
     
     // Periksa judul

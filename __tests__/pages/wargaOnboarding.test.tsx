@@ -1,7 +1,15 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import WargaOnboardingPage from '../../app/warga/onboarding/page';
+import WargaOnboardingPage from '@/app/warga/onboarding/page';
 import { getRiskData } from '../../app/actions/warga';
+
+jest.mock('next/navigation', () => ({
+  useRouter() {
+    return {
+      push: jest.fn(),
+    };
+  },
+}));
 
 jest.mock('../../app/actions/warga', () => ({
   getRiskData: jest.fn()

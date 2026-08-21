@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import React from 'react';
+import React, { Suspense } from 'react';
 
 interface SelectFilterProps {
   paramName: string;
@@ -12,7 +12,7 @@ interface SelectFilterProps {
   className?: string;
 }
 
-export default function SelectFilter({ 
+function SelectFilterInner({ 
   paramName, 
   options, 
   defaultValue, 
@@ -68,5 +68,24 @@ export default function SelectFilter({
         </svg>
       </div>
     </div>
+  );
+}
+
+export default function SelectFilter(props: SelectFilterProps) {
+  return (
+    <Suspense fallback={
+      <div className={`relative flex items-center ${props.className || ''}`}>
+        {props.icon && (
+          <div className="absolute left-3 pointer-events-none text-gray-500 z-10 flex items-center">
+            {props.icon}
+          </div>
+        )}
+        <select disabled className={`appearance-none bg-gray-100 border border-[var(--color-border-base)] rounded-[8px] text-sm text-[var(--color-text-primary)] w-full font-medium ${props.icon ? 'pl-9 pr-8 py-2' : 'pl-4 pr-8 py-2'}`}>
+          <option>Memuat...</option>
+        </select>
+      </div>
+    }>
+      <SelectFilterInner {...props} />
+    </Suspense>
   );
 }

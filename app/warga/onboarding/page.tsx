@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { getRiskData } from '@/app/actions/warga';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function WargaOnboardingPage() {
   const [step, setStep] = useState(1);
@@ -10,6 +11,7 @@ export default function WargaOnboardingPage() {
   const [kecamatan, setKecamatan] = useState('');
   const [loading, setLoading] = useState(false);
   const [riskData, setRiskData] = useState({ percentage: 0, tingkatRisiko: '', found: false });
+  const router = useRouter();
 
   const kecamatanOptions = [
     'Genuk',
@@ -177,7 +179,11 @@ export default function WargaOnboardingPage() {
 
         {step === 3 && (
           <button 
-            onClick={() => {}}
+            onClick={() => {
+              // Set cookie for 1 year so user doesn't see onboarding again
+              document.cookie = "hasSeenOnboarding=true; path=/; max-age=31536000";
+              router.push('/warga/peta');
+            }}
             className="w-full bg-[#254B94] text-white font-bold py-3.5 rounded-[8px] hover:bg-blue-900 transition-colors mt-8"
           >
             Cek Peta Wilayah mu!

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { getRiskData } from '@/app/actions/warga';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { CheckCircle } from 'lucide-react';
 
 export default function WargaOnboardingPage() {
   const [step, setStep] = useState(1);
@@ -56,22 +57,24 @@ export default function WargaOnboardingPage() {
             <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={() => setAirType('PDAM')}
-                className={`flex flex-col p-5 border-2 rounded-[8px] text-left transition-all ${
-                  airType === 'PDAM' ? 'border-[#254B94] bg-[#F8F9FB] shadow-md' : 'border-[#254B94] hover:bg-gray-50'
+                className={`flex flex-col p-5 border-2 rounded-[8px] text-left transition-all relative overflow-hidden ${
+                  airType === 'PDAM' ? 'border-[#254B94] bg-[#254B94] text-white shadow-md transform scale-[1.02]' : 'border-[#254B94] text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                <span className="text-lg font-bold text-gray-900 mb-4">PDAM</span>
-                <span className="text-sm text-gray-500">Kualitas terjamin<br/>Aman digunakan</span>
+                {airType === 'PDAM' && <CheckCircle className="absolute top-4 right-4 text-white w-6 h-6 opacity-80" />}
+                <span className={`text-lg font-bold mb-4 ${airType === 'PDAM' ? 'text-white' : 'text-gray-900'}`}>PDAM</span>
+                <span className={`text-sm ${airType === 'PDAM' ? 'text-blue-100' : 'text-gray-500'}`}>Kualitas terjamin<br/>Aman digunakan</span>
               </button>
               
               <button 
                 onClick={() => setAirType('Air Tanah')}
-                className={`flex flex-col p-5 border-2 rounded-[8px] text-left transition-all ${
-                  airType === 'Air Tanah' ? 'border-[#254B94] bg-[#F8F9FB] shadow-md' : 'border-[#254B94] hover:bg-gray-50'
+                className={`flex flex-col p-5 border-2 rounded-[8px] text-left transition-all relative overflow-hidden ${
+                  airType === 'Air Tanah' ? 'border-[#254B94] bg-[#254B94] text-white shadow-md transform scale-[1.02]' : 'border-[#254B94] text-gray-900 hover:bg-gray-50'
                 }`}
               >
-                <span className="text-lg font-bold text-gray-900 mb-4">Air Tanah</span>
-                <span className="text-sm text-gray-500">Penggunaan bebas<br/>Pengeboran mandiri</span>
+                {airType === 'Air Tanah' && <CheckCircle className="absolute top-4 right-4 text-white w-6 h-6 opacity-80" />}
+                <span className={`text-lg font-bold mb-4 ${airType === 'Air Tanah' ? 'text-white' : 'text-gray-900'}`}>Air Tanah</span>
+                <span className={`text-sm ${airType === 'Air Tanah' ? 'text-blue-100' : 'text-gray-500'}`}>Penggunaan bebas<br/>Pengeboran mandiri</span>
               </button>
             </div>
           </div>
@@ -83,19 +86,19 @@ export default function WargaOnboardingPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Kamu ada di kecamatan mana?</h2>
             
             <div className="relative">
-              <select 
+              <input 
+                type="text"
+                list="kecamatan-list"
                 value={kecamatan} 
                 onChange={(e) => setKecamatan(e.target.value)}
+                placeholder="Ketik nama kecamatan..."
                 className="w-full appearance-none bg-white border border-[#254B94] rounded-[8px] px-4 py-3 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#254B94] focus:border-transparent"
-              >
-                <option value="" disabled>-</option>
+              />
+              <datalist id="kecamatan-list">
                 {kecamatanOptions.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
+                  <option key={opt} value={opt} />
                 ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-              </div>
+              </datalist>
             </div>
           </div>
         )}

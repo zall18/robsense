@@ -2,8 +2,9 @@ import React from 'react';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
-import { Calendar, Download, TrendingUp, AlertTriangle, ArrowRight, MoreVertical } from 'lucide-react';
+import { Calendar, Download, TrendingUp, AlertTriangle, ArrowRight, MoreVertical, Filter } from 'lucide-react';
 import Badge from '@/app/components/Badge';
+import SelectFilter from '@/app/admin/components/SelectFilter';
 import MapWrapper from '@/app/components/MapWrapper';
 import Link from 'next/link';
 
@@ -12,14 +13,28 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  const params = await searchParams;
+  const kecamatan = params.kecamatan;
+
   const [profiles, riwayat] = await Promise.all([
     prisma.profilKecamatan.findMany(),
     prisma.dataCuacaGenangan.findMany({
+      where: kecamatan ? { kecamatan } : undefined,
       orderBy: { timestamp: 'desc' },
       take: 5
     })
   ]);
+
+  const distinctKecamatan = await prisma.profilKecamatan.findMany({
+    select: { namaKecamatan: true },
+    orderBy: { namaKecamatan: 'asc' }
+  });
+  
+  const kecamatanOptions = distinctKecamatan.map(k => ({
+    label: `Kec. ${k.namaKecamatan}`,
+    value: k.namaKecamatan
+  }));
 
   // Hitung agregat Distribusi Sumber Air
   let totalAirTanah = 0;
@@ -55,11 +70,19 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">Dashboard Pemantauan</h1>
           <p className="text-[var(--color-text-secondary)] text-sm">Pemantauan real-time status hidrologi dan kerentanan wilayah.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium border border-[var(--color-border-base)] px-4 py-2.5 rounded-[8px] bg-white shadow-sm hover:bg-gray-50 transition-colors">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="w-[180px]">
+            <SelectFilter
+              paramName="kecamatan"
+              placeholder="Semua Kecamatan"
+              options={kecamatanOptions}
+              icon={<Filter className="w-4 h-4" />}
+            />
+          </div>
+          <button className="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium border border-[var(--color-border-base)] px-4 py-2 rounded-[8px] bg-white shadow-sm hover:bg-gray-50 transition-colors h-[38px]">
             <Calendar className="w-4 h-4" /> Hari Ini
           </button>
-          <button className="flex items-center gap-2 text-sm text-white font-medium bg-[#2563EB] px-4 py-2.5 rounded-[8px] shadow-sm hover:bg-blue-700 transition-colors">
+          <button className="flex items-center gap-2 text-sm text-white font-medium bg-[#2563EB] px-4 py-2 rounded-[8px] shadow-sm hover:bg-blue-700 transition-colors h-[38px]">
             <Download className="w-4 h-4" /> Ekspor Laporan
           </button>
         </div>

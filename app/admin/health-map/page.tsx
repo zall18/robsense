@@ -2,6 +2,7 @@
 import React from 'react';
 import { ZoomIn, ZoomOut, Crosshair } from 'lucide-react';
 import MapWrapper from '@/app/components/MapWrapper';
+import SelectFilter from '@/app/admin/components/SelectFilter';
 
 export default function HealthHeatMapPage() {
   return (
@@ -32,26 +33,38 @@ export default function HealthHeatMapPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Rentang Waktu</label>
-              <select className="w-full border border-[var(--color-border-base)] rounded-[8px] px-3 py-2 text-sm bg-white text-[var(--color-text-primary)] outline-none focus:border-[var(--color-brand-primary)]">
-                <option>24 Jam Terakhir</option>
-                <option>7 Hari Terakhir</option>
-              </select>
+              <SelectFilter 
+                paramName="waktu"
+                defaultValue="24 Jam Terakhir"
+                options={[
+                  { label: '24 Jam Terakhir', value: '24 Jam Terakhir' },
+                  { label: '7 Hari Terakhir', value: '7 Hari Terakhir' }
+                ]}
+              />
             </div>
             
             <div>
               <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Kategori Gejala</label>
-              <select className="w-full border border-[var(--color-border-base)] rounded-[8px] px-3 py-2 text-sm bg-white text-[var(--color-text-primary)] outline-none focus:border-[var(--color-brand-primary)]">
-                <option>Demam / Gatal (Air Tanah)</option>
-                <option>Pernapasan</option>
-              </select>
+              <SelectFilter 
+                paramName="kategori"
+                defaultValue="Demam / Gatal (Air Tanah)"
+                options={[
+                  { label: 'Demam / Gatal (Air Tanah)', value: 'Demam / Gatal (Air Tanah)' },
+                  { label: 'Pernapasan', value: 'Pernapasan' }
+                ]}
+              />
             </div>
             
             <div>
               <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Tingkat Verifikasi</label>
-              <select className="w-full border border-[var(--color-border-base)] rounded-[8px] px-3 py-2 text-sm bg-white text-[var(--color-text-primary)] outline-none focus:border-[var(--color-brand-primary)]">
-                <option>Klaster Terverifikasi</option>
-                <option>Semua Laporan</option>
-              </select>
+              <SelectFilter 
+                paramName="verifikasi"
+                defaultValue="Klaster Terverifikasi"
+                options={[
+                  { label: 'Klaster Terverifikasi', value: 'Klaster Terverifikasi' },
+                  { label: 'Semua Laporan', value: 'Semua Laporan' }
+                ]}
+              />
             </div>
           </div>
         </div>

@@ -4,15 +4,21 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { Building2, Droplets, AlertTriangle, Filter } from 'lucide-react';
 import Badge from '@/app/components/Badge';
+import SelectFilter from '@/app/admin/components/SelectFilter';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-export default async function EducationPriorityPage() {
+export default async function EducationPriorityPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  const params = await searchParams;
+  const risiko = params.risiko;
+
   // Fetch profiles
-  let profiles = await prisma.profilKecamatan.findMany();
+  let profiles = await prisma.profilKecamatan.findMany({
+    where: risiko ? { tingkatRisiko: risiko } : undefined
+  });
 
   const riskWeight: Record<string, number> = {
     'Tinggi': 3,
@@ -82,11 +88,20 @@ export default async function EducationPriorityPage() {
       {/* Table Section */}
       <div className="bg-white rounded-[12px] border border-[var(--color-border-base)] overflow-hidden shadow-sm">
         
-        <div className="px-6 py-4 border-b border-[var(--color-border-base)] flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-[var(--color-border-base)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <h2 className="font-semibold text-base text-[var(--color-text-primary)]">Tabel Skor Prioritas</h2>
-          <button className="flex items-center gap-2 text-sm text-[#3B82F6] font-medium hover:bg-blue-50 px-3 py-1.5 rounded-md transition-colors">
-            <Filter className="w-4 h-4" /> Filter
-          </button>
+          <div className="w-[180px]">
+            <SelectFilter
+              paramName="risiko"
+              placeholder="Semua Risiko"
+              options={[
+                { label: 'Risiko Tinggi', value: 'Tinggi' },
+                { label: 'Risiko Sedang', value: 'Sedang' },
+                { label: 'Risiko Rendah', value: 'Rendah' }
+              ]}
+              icon={<Filter className="w-4 h-4" />}
+            />
+          </div>
         </div>
 
         <div className="overflow-x-auto">

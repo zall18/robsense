@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Calendar, Download, Filter, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Badge from '@/app/components/Badge';
+import SelectFilter from '@/app/admin/components/SelectFilter';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -25,11 +26,26 @@ function getTrendIcon(trend: string | null) {
   return <Minus className="w-3 h-3 text-gray-500" />;
 }
 
-export default async function HistoryPage() {
+export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  const params = await searchParams;
+  const kecamatan = params.kecamatan;
+
   const data = await prisma.dataCuacaGenangan.findMany({
+    where: kecamatan ? { kecamatan } : undefined,
     orderBy: { timestamp: 'desc' },
-    take: 5
+    take: 50 // Show more data for filtering
   });
+
+  // Get distinct kecamatan for filter options
+  const distinctKecamatan = await prisma.profilKecamatan.findMany({
+    select: { namaKecamatan: true },
+    orderBy: { namaKecamatan: 'asc' }
+  });
+  
+  const kecamatanOptions = distinctKecamatan.map(k => ({
+    label: `Kec. ${k.namaKecamatan}`,
+    value: k.namaKecamatan
+  }));
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto">
@@ -42,17 +58,21 @@ export default async function HistoryPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-base)] rounded-[8px] text-sm bg-white hover:bg-gray-50 text-[var(--color-text-primary)] shadow-sm">
+          <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-base)] rounded-[8px] text-sm bg-white hover:bg-gray-50 text-[var(--color-text-primary)] shadow-sm h-[38px]">
             <Calendar className="w-4 h-4 text-gray-500" />
-            01 Okt 2023 - 31 Okt 2023
+            01 Okt - 31 Okt
           </button>
           
-          <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-base)] rounded-[8px] text-sm bg-white hover:bg-gray-50 text-[var(--color-text-primary)] shadow-sm">
-            <Filter className="w-4 h-4 text-gray-500" />
-            Semua Kecamatan
-          </button>
+          <div className="w-[200px]">
+            <SelectFilter 
+              paramName="kecamatan"
+              placeholder="Semua Kecamatan"
+              options={kecamatanOptions}
+              icon={<Filter className="w-4 h-4" />}
+            />
+          </div>
 
-          <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-base)] rounded-[8px] text-sm bg-white hover:bg-gray-50 text-[var(--color-text-primary)] shadow-sm">
+          <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-base)] rounded-[8px] text-sm bg-white hover:bg-gray-50 text-[var(--color-text-primary)] shadow-sm h-[38px]">
             <Download className="w-4 h-4 text-gray-500" />
             Ekspor
           </button>

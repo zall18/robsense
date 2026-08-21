@@ -4,14 +4,20 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { Droplet, ArrowUpRight, ArrowRight, Download, Filter } from 'lucide-react';
 import Badge from '@/app/components/Badge';
+import SelectFilter from '@/app/admin/components/SelectFilter';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-export default async function WaterSourcePage() {
-  const profiles = await prisma.profilKecamatan.findMany();
+export default async function WaterSourcePage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  const params = await searchParams;
+  const risiko = params.risiko;
+
+  const profiles = await prisma.profilKecamatan.findMany({
+    where: risiko ? { tingkatRisiko: risiko } : undefined
+  });
   
   // Hitung rata-rata
   const totalKecamatan = profiles.length;
@@ -106,10 +112,19 @@ export default async function WaterSourcePage() {
             <p className="text-xs text-[var(--color-text-secondary)] mt-1">Distribusi pemakaian sumber air per distrik (Kecamatan).</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors">
-              <Filter className="w-4 h-4" /> Filter
-            </button>
-            <button className="flex items-center gap-2 text-sm text-white font-medium bg-[#2563EB] px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm">
+            <div className="w-[180px]">
+              <SelectFilter
+                paramName="risiko"
+                placeholder="Semua Risiko"
+                options={[
+                  { label: 'Risiko Tinggi', value: 'Tinggi' },
+                  { label: 'Risiko Sedang', value: 'Sedang' },
+                  { label: 'Risiko Rendah', value: 'Rendah' }
+                ]}
+                icon={<Filter className="w-4 h-4" />}
+              />
+            </div>
+            <button className="flex items-center gap-2 text-sm text-white font-medium bg-[#2563EB] px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm h-[38px]">
               <Download className="w-4 h-4" /> Ekspor
             </button>
           </div>

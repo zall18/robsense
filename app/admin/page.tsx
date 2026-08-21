@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { Calendar, Download, TrendingUp, AlertTriangle, ArrowRight, MoreVertical, Filter } from 'lucide-react';
 import Badge from '@/app/components/Badge';
 import SelectFilter from '@/app/admin/components/SelectFilter';
+import ExportButton from '@/app/admin/components/ExportButton';
 import MapWrapper from '@/app/components/MapWrapper';
 import Link from 'next/link';
 
@@ -82,9 +83,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <button className="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium border border-[var(--color-border-base)] px-4 py-2 rounded-[8px] bg-white shadow-sm hover:bg-gray-50 transition-colors h-[38px]">
             <Calendar className="w-4 h-4" /> Hari Ini
           </button>
-          <button className="flex items-center gap-2 text-sm text-white font-medium bg-[#2563EB] px-4 py-2 rounded-[8px] shadow-sm hover:bg-blue-700 transition-colors h-[38px]">
-            <Download className="w-4 h-4" /> Ekspor Laporan
-          </button>
+          <ExportButton data={riwayat} filename="laporan_dashboard" label="Ekspor Laporan" />
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Calendar, Download, Filter, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Badge from '@/app/components/Badge';
 import SelectFilter from '@/app/admin/components/SelectFilter';
+import ExportButton from '@/app/admin/components/ExportButton';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -72,10 +73,11 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
             />
           </div>
 
-          <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-base)] rounded-[8px] text-sm bg-white hover:bg-gray-50 text-[var(--color-text-primary)] shadow-sm h-[38px]">
-            <Download className="w-4 h-4 text-gray-500" />
-            Ekspor
-          </button>
+          <ExportButton 
+            data={data} 
+            filename="riwayat_genangan" 
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-base)] rounded-[8px] text-sm bg-white hover:bg-gray-50 text-[var(--color-text-primary)] shadow-sm h-[38px]" 
+          />
         </div>
       </div>
 

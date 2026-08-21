@@ -9,6 +9,7 @@ jest.mock('lucide-react', () => ({
   AlertTriangle: () => <div data-testid="icon-alert" />,
   ArrowRight: () => <div data-testid="icon-arrow" />,
   MoreVertical: () => <div data-testid="icon-more" />,
+  Filter: () => <div data-testid="icon-filter" />,
 }));
 
 // Mock MapWrapper

@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { Droplet, ArrowUpRight, ArrowRight, Download, Filter } from 'lucide-react';
 import Badge from '@/app/components/Badge';
 import SelectFilter from '@/app/admin/components/SelectFilter';
+import ExportButton from '@/app/admin/components/ExportButton';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -124,9 +125,7 @@ export default async function WaterSourcePage({ searchParams }: { searchParams: 
                 icon={<Filter className="w-4 h-4" />}
               />
             </div>
-            <button className="flex items-center gap-2 text-sm text-white font-medium bg-[#2563EB] px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm h-[38px]">
-              <Download className="w-4 h-4" /> Ekspor
-            </button>
+            <ExportButton data={profiles} filename="sumber_air" className="flex items-center gap-2 text-sm text-white font-medium bg-[#2563EB] px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm h-[38px]" />
           </div>
         </div>
 

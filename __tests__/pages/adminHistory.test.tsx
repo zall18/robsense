@@ -26,7 +26,14 @@ jest.mock('@prisma/client', () => {
               statusRisiko: 'Tinggi',
               ketinggianAir: 125.4,
               trendStatus: 'Meningkat',
-              timestamp: new Date('2023-10-24T14:30:00.000Z')
+              timestamp: new Date('2023-10-10T14:32:00Z')
+            }
+          ])
+        },
+        profilKecamatan: {
+          findMany: jest.fn().mockResolvedValue([
+            {
+              namaKecamatan: 'Genuk'
             }
           ])
         }

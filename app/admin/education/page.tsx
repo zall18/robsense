@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { Building2, Droplets, AlertTriangle, Filter } from 'lucide-react';
 import Badge from '@/app/components/Badge';
 import SelectFilter from '@/app/admin/components/SelectFilter';
+import EducationActionButton from '@/app/admin/components/EducationActionButton';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -154,9 +155,7 @@ export default async function EducationPriorityPage({ searchParams }: { searchPa
                       {priorityStatus}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${index === 0 ? 'bg-[#3B82F6] text-white hover:bg-blue-700 shadow-sm' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
-                        Rencanakan Edukasi
-                      </button>
+                      <EducationActionButton />
                     </td>
                   </tr>
                 );

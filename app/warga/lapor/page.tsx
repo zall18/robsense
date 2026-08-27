@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { submitLaporan } from '@/app/actions/warga';
 
 export default function WargaLaporPage() {
@@ -8,6 +8,33 @@ export default function WargaLaporPage() {
   const [gejala, setGejala] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [cooldownTime, setCooldownTime] = useState<number>(0);
+  const COOLDOWN_DURATION = 5 * 60 * 1000; // 5 minutes
+
+  useEffect(() => {
+    const lastReport = localStorage.getItem('lastReportTime');
+    if (lastReport) {
+      const timePassed = Date.now() - parseInt(lastReport);
+      if (timePassed < COOLDOWN_DURATION) {
+        setCooldownTime(COOLDOWN_DURATION - timePassed);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cooldownTime > 0) {
+      const timer = setInterval(() => {
+        setCooldownTime(prev => {
+          if (prev <= 1000) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1000;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [cooldownTime]);
 
   const kecamatanOptions = [
     'Genuk',
@@ -30,6 +57,9 @@ export default function WargaLaporPage() {
     
     if (result.success) {
       setSuccess(true);
+      const now = Date.now();
+      localStorage.setItem('lastReportTime', now.toString());
+      setCooldownTime(COOLDOWN_DURATION);
       // Reset form if wanted, or leave it and let user read success message
     } else {
       alert("Terjadi kesalahan. Silakan coba lagi.");
@@ -54,9 +84,12 @@ export default function WargaLaporPage() {
           </p>
           <button 
             onClick={() => { setSuccess(false); setKecamatan(''); setGejala(''); }}
-            className="bg-green-600 text-white font-bold py-2.5 px-6 rounded-md hover:bg-green-700 transition-colors"
+            disabled={cooldownTime > 0}
+            className="bg-green-600 text-white font-bold py-2.5 px-6 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Lapor Lagi
+            {cooldownTime > 0 
+              ? `Tunggu ${Math.floor(cooldownTime / 60000)}m ${Math.floor((cooldownTime % 60000) / 1000)}s` 
+              : "Lapor Lagi"}
           </button>
         </div>
       ) : (
@@ -100,12 +133,14 @@ export default function WargaLaporPage() {
             <div className="flex justify-end mt-2">
               <button 
                 type="submit"
-                disabled={!kecamatan || !gejala || loading}
-                className="bg-[#254B94] text-white font-bold py-2.5 px-8 rounded-[6px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                disabled={!kecamatan || !gejala || loading || cooldownTime > 0}
+                className="bg-[#254B94] text-white font-bold py-2.5 px-8 rounded-[6px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[150px]"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : "Send"}
+                ) : cooldownTime > 0 ? (
+                  `Tunggu ${Math.floor(cooldownTime / 60000)}m ${Math.floor((cooldownTime % 60000) / 1000)}s`
+                ) : "Kirim Laporan"}
               </button>
             </div>
 

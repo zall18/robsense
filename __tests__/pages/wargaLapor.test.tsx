@@ -10,6 +10,7 @@ jest.mock('../../app/actions/warga', () => ({
 describe('WargaLaporPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
   });
 
   it('renders Lapor form initially', () => {
@@ -37,7 +38,7 @@ describe('WargaLaporPage', () => {
     fireEvent.change(textarea, { target: { value: 'Gatal-gatal parah' } });
     
     // Click Send
-    const sendBtn = screen.getByText('Send');
+    const sendBtn = screen.getByText('Kirim Laporan');
     fireEvent.click(sendBtn);
     
     // Wait for success screen

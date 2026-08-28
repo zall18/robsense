@@ -59,10 +59,15 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-[var(--color-border-base)] rounded-[8px] text-sm bg-white hover:bg-gray-50 text-[var(--color-text-primary)] shadow-sm h-[38px]">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            01 Okt - 31 Okt
-          </button>
+          <div className="w-[180px]">
+            <SelectFilter
+              paramName="waktu"
+              placeholder="Semua Waktu"
+              defaultValue="Bulan Ini"
+              options={[{label: 'Hari Ini', value: 'Hari Ini'}, {label: 'Minggu Ini', value: 'Minggu Ini'}, {label: 'Bulan Ini', value: 'Bulan Ini'}]}
+              icon={<Calendar className="w-4 h-4" />}
+            />
+          </div>
           
           <div className="w-[200px]">
             <SelectFilter 
@@ -123,7 +128,9 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {/* Kosong seperti desain */}
+                      <button className="text-[#2563EB] text-xs font-semibold hover:underline">
+                        Lihat Detail
+                      </button>
                     </td>
                   </tr>
                 );

@@ -9,6 +9,7 @@ import ExportButton from '@/app/admin/components/ExportButton';
 import ManualReportButton from '@/app/admin/components/ManualReportButton';
 import MapWrapper from '@/app/components/MapWrapper';
 import Link from 'next/link';
+import { assignCoordinates } from '@/app/utils/geo';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -19,14 +20,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const params = await searchParams;
   const kecamatan = params.kecamatan;
 
-  const [profiles, riwayat] = await Promise.all([
+  const [profiles, riwayat, laporanWargaRaw] = await Promise.all([
     prisma.profilKecamatan.findMany(),
     prisma.dataCuacaGenangan.findMany({
       where: kecamatan ? { kecamatan } : undefined,
       orderBy: { timestamp: 'desc' },
       take: 5
+    }),
+    prisma.laporanWarga.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100
     })
   ]);
+
+  const reports = assignCoordinates(laporanWargaRaw);
 
   const distinctKecamatan = await prisma.profilKecamatan.findMany({
     select: { namaKecamatan: true },
@@ -81,9 +88,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               icon={<Filter className="w-4 h-4" />}
             />
           </div>
-          <button className="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium border border-[var(--color-border-base)] px-4 py-2 rounded-[8px] bg-white shadow-sm hover:bg-gray-50 transition-colors h-[38px]">
-            <Calendar className="w-4 h-4" /> Hari Ini
-          </button>
+          <div className="w-[180px]">
+            <SelectFilter
+              paramName="waktu"
+              placeholder="Semua Waktu"
+              defaultValue="Hari Ini"
+              options={[{label: 'Hari Ini', value: 'Hari Ini'}, {label: '7 Hari Terakhir', value: '7 Hari Terakhir'}]}
+              icon={<Calendar className="w-4 h-4" />}
+            />
+          </div>
           <ManualReportButton kecamatanOptions={kecamatanOptions} />
           <ExportButton data={riwayat} filename="laporan_dashboard" label="Ekspor Laporan" />
         </div>
@@ -101,7 +114,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
           <div className="relative flex-1 bg-gray-100 min-h-[400px]">
             {/* Peta Interaktif */}
-            <MapWrapper />
+            <MapWrapper reports={reports} />
             
             {/* Overlay Info Card */}
             <div className="absolute bottom-6 left-6 z-[1000] bg-white p-4 rounded-xl shadow-lg border border-gray-100 min-w-[200px]">
@@ -174,13 +187,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 }
 
                 return (
-                  <div key={k.id} className={`${bgClass} rounded-[10px] p-3.5 flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity`}>
+                  <Link href="/admin/education" key={k.id} className={`${bgClass} rounded-[10px] p-3.5 flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity block`}>
                     <div>
                       <h4 className={`text-sm font-bold ${titleColor} mb-0.5`}>{index + 1}. Kecamatan {k.namaKecamatan}</h4>
                       <p className={`text-[11px] font-medium ${descColor}`}>{descText}</p>
                     </div>
                     <ArrowRight className={`w-4 h-4 ${descColor}`} />
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -228,9 +241,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     </td>
                     <td className="px-6 py-4 text-center font-bold text-gray-800">{r.ketinggianAir ? r.ketinggianAir.toFixed(1) : '-'}</td>
                     <td className="px-6 py-4 text-center">
-                      <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <Link href="/admin/history" className="text-gray-400 hover:text-gray-600 transition-colors inline-block">
                         <MoreVertical className="w-5 h-5 mx-auto" />
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 );

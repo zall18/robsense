@@ -5,10 +5,27 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 
-// Koordinat Semarang Tengah/Utara
 const SEMARANG_CENTER: [number, number] = [-6.966667, 110.416664];
 
-export default function Map() {
+export default function Map({ reports = [] }: { reports?: { id: string, latitude: number | null, longitude: number | null, gejala: string, kecamatan: string }[] }) {
+  // Filter only reports with valid coordinates
+  const validReports = reports.filter(r => r.latitude !== null && r.longitude !== null);
+
+  // Clustering for Red Zones (>= 5 reports)
+  const grouped: Record<string, typeof validReports> = {};
+  validReports.forEach(r => {
+    if (!grouped[r.kecamatan]) grouped[r.kecamatan] = [];
+    grouped[r.kecamatan].push(r);
+  });
+
+  const redZones = Object.entries(grouped)
+    .filter(([_, items]) => items.length >= 5)
+    .map(([kecamatan, items]) => {
+      const avgLat = items.reduce((sum, r) => sum + r.latitude!, 0) / items.length;
+      const avgLng = items.reduce((sum, r) => sum + r.longitude!, 0) / items.length;
+      return { kecamatan, count: items.length, lat: avgLat, lng: avgLng };
+    });
+
   return (
     <MapContainer 
       center={SEMARANG_CENTER} 
@@ -16,46 +33,38 @@ export default function Map() {
       className="w-full h-full rounded-[12px] z-0"
     >
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       
-      {/* Zona Merah 1: Tegalrejo Dummy */}
-      <Circle 
-        center={[-6.955, 110.420]} 
-        radius={800}
-        pathOptions={{ color: 'var(--color-risk-high)', fillColor: 'var(--color-risk-high)', fillOpacity: 0.4 }}
-      >
-        <Popup>
-          <div className="font-bold text-[var(--color-risk-high)]">ZONA MERAH: Tegalrejo</div>
-          <div>11 Laporan</div>
-        </Popup>
-      </Circle>
-
-      {/* Zona Merah 2: Pecinan Dummy */}
-      <Circle 
-        center={[-6.975, 110.425]} 
-        radius={600}
-        pathOptions={{ color: 'var(--color-risk-high)', fillColor: 'var(--color-risk-high)', fillOpacity: 0.4 }}
-      >
-        <Popup>
-          <div className="font-bold text-[var(--color-risk-high)]">ZONA MERAH: Pecinan</div>
-          <div>14 Laporan</div>
-        </Popup>
-      </Circle>
-      
-      {/* Titik laporan individual (dummy scatter) */}
-      {[
-        [-6.95, 110.415], [-6.96, 110.422], [-6.958, 110.418], 
-        [-6.952, 110.419], [-6.972, 110.421], [-6.978, 110.428], 
-        [-6.971, 110.426], [-6.961, 110.430], [-6.955, 110.435]
-      ].map((pos, idx) => (
+      {/* Zona Merah (Klaster >= 5 laporan) */}
+      {redZones.map((zone, idx) => (
         <Circle 
-          key={idx}
-          center={pos as [number, number]} 
-          radius={50}
-          pathOptions={{ color: 'var(--color-risk-medium)', fillColor: 'var(--color-risk-medium)', fillOpacity: 0.8, stroke: false }}
-        />
+          key={`zone-${idx}`}
+          center={[zone.lat, zone.lng]} 
+          radius={800}
+          pathOptions={{ color: 'var(--color-risk-high)', fillColor: 'var(--color-risk-high)', fillOpacity: 0.4 }}
+        >
+          <Popup>
+            <div className="font-bold text-[var(--color-risk-high)]">ZONA MERAH: {zone.kecamatan}</div>
+            <div>{zone.count} Laporan Terverifikasi</div>
+          </Popup>
+        </Circle>
+      ))}
+
+      {/* Titik Laporan Individu */}
+      {validReports.map((report) => (
+        <Circle 
+          key={report.id}
+          center={[report.latitude!, report.longitude!]} 
+          radius={100}
+          pathOptions={{ color: 'var(--color-risk-high)', fillColor: 'var(--color-risk-high)', fillOpacity: 0.6 }}
+        >
+          <Popup>
+            <div className="font-bold text-[var(--color-risk-high)]">Laporan: {report.kecamatan}</div>
+            <div className="text-sm">{report.gejala}</div>
+          </Popup>
+        </Circle>
       ))}
     </MapContainer>
   );

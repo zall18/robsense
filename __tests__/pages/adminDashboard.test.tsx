@@ -58,6 +58,9 @@ jest.mock('@prisma/client', () => {
               timestamp: new Date('2023-10-10T14:32:00Z')
             }
           ])
+        },
+        laporanWarga: {
+          findMany: jest.fn().mockResolvedValue([]),
         }
       };
     })

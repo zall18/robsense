@@ -9,7 +9,8 @@ import {
   GraduationCap, 
   Droplets,
   HelpCircle,
-  LogOut
+  LogOut,
+  FileText
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -19,6 +20,7 @@ export default function Sidebar() {
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { name: 'Health Heat Map', path: '/admin/health-map', icon: Map },
     { name: 'Riwayat Genangan', path: '/admin/history', icon: History },
+    { name: 'Laporan Warga', path: '/admin/laporan', icon: FileText },
     { name: 'Prioritas Edukasi', path: '/admin/education', icon: GraduationCap },
     { name: 'Cakupan Sumber Air', path: '/admin/water-source', icon: Droplets },
   ];

@@ -10,6 +10,6 @@ const MapComponent = dynamic(() => import('@/app/components/Map'), {
   )
 });
 
-export default function MapWrapper() {
-  return <MapComponent />;
+export default function MapWrapper({ reports = [] }: { reports?: any[] }) {
+  return <MapComponent reports={reports} />;
 }

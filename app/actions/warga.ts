@@ -1,9 +1,11 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, LaporanWarga } from '@prisma/client';
+import { assignCoordinates } from '@/app/utils/geo';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { z } from 'zod';
+import { headers } from 'next/headers';
 
 // Kita pastikan inisiasi koneksi sama dengan yang lain
 const connectionString = process.env.DATABASE_URL;
@@ -53,14 +55,34 @@ const LaporanSchema = z.object({
  */
 export async function submitLaporan(kecamatan: string, gejala: string) {
   try {
-    // 1. Validasi Input (Mencegah Bypass & Spam Panjang)
+    // 0. Ambil IP Address untuk Rate Limiting
+    const headersList = await headers();
+    const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown';
+
+    // 1. Cek Rate-Limiting (5 Menit)
+    if (ipAddress !== 'unknown') {
+      const lastReport = await prisma.laporanWarga.findFirst({
+        where: { ipAddress },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (lastReport) {
+        const minutesDiff = (new Date().getTime() - lastReport.createdAt.getTime()) / (1000 * 60);
+        if (minutesDiff < 5) {
+          return { success: false, error: `Anda melapor terlalu cepat. Harap tunggu ${Math.ceil(5 - minutesDiff)} menit lagi.` };
+        }
+      }
+    }
+
+    // 2. Validasi Input
     const validated = LaporanSchema.parse({ kecamatan, gejala });
 
-    // 2. Simpan ke Database
+    // 3. Simpan ke Database
     const newLaporan = await prisma.laporanWarga.create({
       data: {
         kecamatan: validated.kecamatan,
         gejala: validated.gejala,
+        ipAddress
       }
     });
     return { success: true, id: newLaporan.id };
@@ -86,5 +108,38 @@ export async function submitLaporanBatch(laporanList: { kecamatan: string, gejal
   } catch (error) {
     console.error("Error submitLaporanBatch:", error);
     return { success: false, error: 'Gagal menyimpan laporan massal. Pastikan format sesuai.' };
+  }
+}
+
+/**
+ * Mendapatkan laporan warga untuk peta (hanya yang sudah terverifikasi)
+ */
+export async function getLaporanWargaForMap() {
+  try {
+    const laporanWargaRaw = await prisma.laporanWarga.findMany({
+      where: { isVerified: true },
+      orderBy: { createdAt: 'desc' },
+      take: 200
+    });
+    return assignCoordinates(laporanWargaRaw);
+  } catch (error) {
+    console.error("Error getLaporanWargaForMap:", error);
+    return [];
+  }
+}
+
+/**
+ * Memperbarui status verifikasi laporan warga (Admin)
+ */
+export async function toggleVerifyLaporan(id: string, newStatus: boolean) {
+  try {
+    await prisma.laporanWarga.update({
+      where: { id },
+      data: { isVerified: newStatus }
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error toggleVerifyLaporan:", error);
+    return { success: false, error: 'Gagal memperbarui status verifikasi' };
   }
 }

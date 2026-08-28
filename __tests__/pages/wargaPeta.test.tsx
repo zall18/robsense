@@ -11,6 +11,9 @@ jest.mock('@prisma/client', () => {
         { id: '1', kecamatan: 'Genuk', statusRisiko: 'Tinggi', timestamp: new Date() },
         { id: '2', kecamatan: 'Semarang Utara', statusRisiko: 'Sedang', timestamp: new Date() }
       ])
+    },
+    laporanWarga: {
+      findMany: jest.fn().mockResolvedValue([])
     }
   };
   return { PrismaClient: jest.fn(() => mPrisma) };

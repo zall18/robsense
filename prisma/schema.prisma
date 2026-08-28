@@ -21,6 +21,7 @@ model LaporanWarga {
   latitude     Float?
   longitude    Float?
   ipAddress    String?  // Untuk rate limiting
+  isVerified   Boolean  @default(false)
   createdAt    DateTime @default(now())
 }
 

@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { assignCoordinates } from '@/app/utils/geo';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -19,6 +20,14 @@ export default async function WargaPetaPage() {
     orderBy: { timestamp: 'desc' },
     take: 4
   });
+
+  // Ambil laporan warga untuk peta
+  const laporanWargaRaw = await prisma.laporanWarga.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 100
+  });
+  
+  const reports = assignCoordinates(laporanWargaRaw);
 
   // Hitung jumlah Tinggi, Sedang, Rendah
   const count = {
@@ -50,7 +59,7 @@ export default async function WargaPetaPage() {
 
       {/* Map Area */}
       <div className="h-[250px] w-full bg-gray-200 rounded-[12px] mb-6 overflow-hidden relative border border-gray-300 shadow-sm z-0">
-         <ClientMap />
+         <ClientMap reports={reports} />
       </div>
 
       {/* Legends */}

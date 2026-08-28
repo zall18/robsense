@@ -1,10 +1,34 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ZoomIn, ZoomOut, Crosshair } from 'lucide-react';
 import MapWrapper from '@/app/components/MapWrapper';
 import SelectFilter from '@/app/admin/components/SelectFilter';
+import { getLaporanWargaForMap } from '@/app/actions/warga';
 
 export default function HealthHeatMapPage() {
+  const [reports, setReports] = useState<any[]>([]);
+  const [alarmFilter, setAlarmFilter] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getLaporanWargaForMap().then(data => {
+      setReports(data);
+      setLoading(false);
+    });
+  }, []);
+
+  const activeReports = useMemo(() => {
+    if (!alarmFilter) return reports;
+    
+    // Hitung jumlah laporan per kecamatan
+    const counts: Record<string, number> = {};
+    reports.forEach(r => {
+      counts[r.kecamatan] = (counts[r.kecamatan] || 0) + 1;
+    });
+    
+    // Filter laporan terisolasi (< 3 laporan per kecamatan dianggap berpotensi alarm palsu)
+    return reports.filter(r => counts[r.kecamatan] >= 3);
+  }, [reports, alarmFilter]);
   return (
     <div className="h-full flex flex-col lg:flex-row gap-6">
       
@@ -18,8 +42,13 @@ export default function HealthHeatMapPage() {
           <button className="bg-white p-2 rounded-[8px] shadow-sm hover:bg-gray-50 text-[var(--color-text-secondary)]"><ZoomOut className="w-4 h-4" /></button>
           <button className="bg-white p-2 rounded-[8px] shadow-sm hover:bg-gray-50 text-[var(--color-text-secondary)]"><Crosshair className="w-4 h-4" /></button>
         </div>
-        <div className="flex-1 w-full h-full p-2">
-          <MapWrapper />
+        <div className="flex-1 w-full h-full p-2 relative">
+          {loading && (
+            <div className="absolute inset-0 z-[500] flex items-center justify-center bg-white/50 backdrop-blur-sm rounded-lg">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          )}
+          <MapWrapper reports={activeReports} />
         </div>
       </div>
 
@@ -82,8 +111,11 @@ export default function HealthHeatMapPage() {
           
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-[var(--color-text-primary)]">Pencegahan Alarm Palsu</span>
-            <div className="w-10 h-5 bg-[var(--color-brand-primary)] rounded-full relative cursor-pointer">
-              <div className="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5 shadow-sm"></div>
+            <div 
+              onClick={() => setAlarmFilter(!alarmFilter)}
+              className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${alarmFilter ? 'bg-[var(--color-brand-primary)]' : 'bg-gray-300'}`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 shadow-sm transition-transform ${alarmFilter ? 'right-0.5 translate-x-0' : 'left-0.5 translate-x-0'}`}></div>
             </div>
           </div>
           <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
@@ -99,7 +131,7 @@ export default function HealthHeatMapPage() {
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div className="bg-white p-3 rounded-[8px] border border-[var(--color-border-base)]">
               <div className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-text-secondary)] mb-1">Klaster Aktif</div>
-              <div className="text-2xl font-bold text-[var(--color-text-primary)]">18</div>
+              <div className="text-2xl font-bold text-[var(--color-text-primary)]">{activeReports.length}</div>
             </div>
             <div className="bg-white p-3 rounded-[8px] border border-[var(--color-border-base)]">
               <div className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-text-secondary)] mb-1">Tren Mingguan</div>

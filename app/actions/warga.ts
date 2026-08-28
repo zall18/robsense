@@ -69,3 +69,22 @@ export async function submitLaporan(kecamatan: string, gejala: string) {
     return { success: false, error: 'Gagal menyimpan laporan' };
   }
 }
+
+/**
+ * Menyimpan laporan warga secara massal ke database (dari CSV/Excel Admin)
+ */
+export async function submitLaporanBatch(laporanList: { kecamatan: string, gejala: string }[]) {
+  try {
+    const validatedData = laporanList.map(item => LaporanSchema.parse(item));
+    
+    const result = await prisma.laporanWarga.createMany({
+      data: validatedData,
+      skipDuplicates: true,
+    });
+    
+    return { success: true, count: result.count };
+  } catch (error) {
+    console.error("Error submitLaporanBatch:", error);
+    return { success: false, error: 'Gagal menyimpan laporan massal. Pastikan format sesuai.' };
+  }
+}

@@ -6,6 +6,7 @@ import { Calendar, Download, TrendingUp, AlertTriangle, ArrowRight, MoreVertical
 import Badge from '@/app/components/Badge';
 import SelectFilter from '@/app/admin/components/SelectFilter';
 import ExportButton from '@/app/admin/components/ExportButton';
+import ManualReportButton from '@/app/admin/components/ManualReportButton';
 import MapWrapper from '@/app/components/MapWrapper';
 import Link from 'next/link';
 
@@ -83,6 +84,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <button className="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium border border-[var(--color-border-base)] px-4 py-2 rounded-[8px] bg-white shadow-sm hover:bg-gray-50 transition-colors h-[38px]">
             <Calendar className="w-4 h-4" /> Hari Ini
           </button>
+          <ManualReportButton kecamatanOptions={kecamatanOptions} />
           <ExportButton data={riwayat} filename="laporan_dashboard" label="Ekspor Laporan" />
         </div>
       </div>

@@ -7,6 +7,7 @@ type DemoState = 'Tinggi' | 'Sedang' | 'Rendah';
 
 export default function WargaNotifikasiPage() {
   const [demoState, setDemoState] = useState<DemoState>('Tinggi');
+  const [alertsEnabled, setAlertsEnabled] = useState(true);
 
   return (
     <div className="flex flex-col min-h-full bg-[#F8F9FB] p-6 pb-8 pt-8 relative">
@@ -33,8 +34,19 @@ export default function WargaNotifikasiPage() {
         </button>
       </div>
 
-      {/* Header */}
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Notifikasi</h1>
+      {/* Header & Toggle */}
+      <div className="flex items-center justify-between mb-6 mt-4">
+        <h1 className="text-2xl font-bold text-gray-900">Notifikasi</h1>
+        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
+          <span className="text-[10px] font-bold text-gray-700 uppercase tracking-wide">Peringatan</span>
+          <div 
+            onClick={() => setAlertsEnabled(!alertsEnabled)}
+            className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${alertsEnabled ? 'bg-[#254B94]' : 'bg-gray-300'}`}
+          >
+            <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 shadow-sm transition-all ${alertsEnabled ? 'left-4' : 'left-0.5'}`}></div>
+          </div>
+        </div>
+      </div>
       
       {/* Peringatan Mendesak (Tergantung Demo State) */}
       {demoState === 'Tinggi' && (

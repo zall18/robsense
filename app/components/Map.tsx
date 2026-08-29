@@ -7,7 +7,13 @@ import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 
 const SEMARANG_CENTER: [number, number] = [-6.966667, 110.416664];
 
-export default function Map({ reports = [] }: { reports?: { id: string, latitude: number | null, longitude: number | null, gejala: string, kecamatan: string }[] }) {
+function getCategoryColor(category: string | null) {
+  if (category === 'Tinggi') return 'var(--color-risk-high)'; // Merah
+  if (category === 'Sedang') return 'var(--color-risk-medium)'; // Oranye
+  return 'var(--color-risk-low)'; // Biru/Hijau
+}
+
+export default function Map({ reports = [] }: { reports?: { id: string, latitude: number | null, longitude: number | null, gejala: string, kecamatan: string, kategori?: string | null }[] }) {
   // Filter only reports with valid coordinates
   const validReports = reports.filter(r => r.latitude !== null && r.longitude !== null);
 
@@ -58,11 +64,14 @@ export default function Map({ reports = [] }: { reports?: { id: string, latitude
           key={report.id}
           center={[report.latitude!, report.longitude!]} 
           radius={100}
-          pathOptions={{ color: 'var(--color-risk-high)', fillColor: 'var(--color-risk-high)', fillOpacity: 0.6 }}
+          pathOptions={{ color: getCategoryColor(report.kategori || null), fillColor: getCategoryColor(report.kategori || null), fillOpacity: 0.6 }}
         >
           <Popup>
-            <div className="font-bold text-[var(--color-risk-high)]">Laporan: {report.kecamatan}</div>
+            <div className="font-bold" style={{ color: getCategoryColor(report.kategori || null) }}>
+              Laporan: {report.kecamatan}
+            </div>
             <div className="text-sm">{report.gejala}</div>
+            <div className="text-xs mt-1">Kategori: {report.kategori || 'Rendah'}</div>
           </Popup>
         </Circle>
       ))}

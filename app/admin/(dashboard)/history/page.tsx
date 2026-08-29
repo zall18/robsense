@@ -6,6 +6,7 @@ import { Calendar, Download, Filter, TrendingUp, TrendingDown, Minus } from 'luc
 import Badge from '@/app/components/Badge';
 import SelectFilter from '@/app/admin/components/SelectFilter';
 import ExportButton from '@/app/admin/components/ExportButton';
+import HistoryDetailModal from '@/app/admin/components/HistoryDetailModal';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -128,9 +129,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <button className="text-[#2563EB] text-xs font-semibold hover:underline">
-                        Lihat Detail
-                      </button>
+                      <HistoryDetailModal data={row} />
                     </td>
                   </tr>
                 );

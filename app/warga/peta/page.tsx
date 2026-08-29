@@ -11,10 +11,14 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 import ClientMap from './ClientMap';
+import SearchInput from './SearchInput';
 
 export const revalidate = 0; // Dynamic route
 
-export default async function WargaPetaPage() {
+export default async function WargaPetaPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  const params = await searchParams;
+  const q = params.q?.toLowerCase();
+
   // Ambil data terbaru dari DataCuacaGenangan
   const updates = await prisma.dataCuacaGenangan.findMany({
     orderBy: { timestamp: 'desc' },
@@ -23,6 +27,10 @@ export default async function WargaPetaPage() {
 
   // Ambil laporan warga untuk peta
   const laporanWargaRaw = await prisma.laporanWarga.findMany({
+    where: {
+      isVerified: true,
+      ...(q ? { kecamatan: { contains: q, mode: 'insensitive' } } : {})
+    },
     orderBy: { createdAt: 'desc' },
     take: 100
   });
@@ -44,18 +52,7 @@ export default async function WargaPetaPage() {
       <p className="text-sm text-gray-600 mb-6">Pantau tingkat risiko wilayah secara real-time.</p>
       
       {/* Search Input */}
-      <div className="relative mb-6">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-        <input 
-          type="text" 
-          placeholder="Cari Kecamatan..." 
-          className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-[10px] leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-[#254B94] focus:border-[#254B94] sm:text-sm"
-        />
-      </div>
+      <SearchInput />
 
       {/* Map Area */}
       <div className="h-[250px] w-full bg-gray-200 rounded-[12px] mb-6 overflow-hidden relative border border-gray-300 shadow-sm z-0">

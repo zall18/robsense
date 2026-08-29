@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import WaterSourcePage from '@/app/admin/water-source/page';
+import WaterSourcePage from '@/app/admin/(dashboard)/water-source/page';
 
 jest.mock('lucide-react', () => ({
   Droplet: () => <div data-testid="icon-droplet" />,

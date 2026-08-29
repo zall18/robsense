@@ -95,7 +95,7 @@ export default async function LaporanWargaPage({ searchParams }: { searchParams:
                     <td className="px-6 py-4 text-[var(--color-text-primary)] font-medium">{row.kecamatan}</td>
                     <td className="px-6 py-4 text-gray-700 max-w-md truncate" title={row.gejala}>{row.gejala}</td>
                     <td className="px-6 py-4">
-                      <VerifyToggle id={row.id} initialStatus={row.isVerified} />
+                      <VerifyToggle id={row.id} initialStatus={row.isVerified} initialCategory={row.kategori} />
                     </td>
                   </tr>
                 );

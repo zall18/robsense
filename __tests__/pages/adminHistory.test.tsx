@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import HistoryPage from '@/app/admin/history/page';
+import HistoryPage from '@/app/admin/(dashboard)/history/page';
 
 // Mock komponen ikon dari lucide-react karena terkadang menyulitkan rendering di Jest
 jest.mock('lucide-react', () => ({

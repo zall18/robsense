@@ -1,12 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import EducationPriorityPage from '@/app/admin/education/page';
+import EducationPriorityPage from '@/app/admin/(dashboard)/education/page';
 
 jest.mock('lucide-react', () => ({
   Building2: () => <div data-testid="icon-building" />,
   Droplets: () => <div data-testid="icon-droplets" />,
   AlertTriangle: () => <div data-testid="icon-alert-triangle" />,
   Filter: () => <div data-testid="icon-filter" />,
+  Check: () => <div data-testid="icon-check" />,
+  MessageCircle: () => <div data-testid="icon-message-circle" />,
 }));
 
 // Mock Prisma
@@ -63,7 +65,7 @@ describe('Halaman Prioritas Edukasi', () => {
     
     // Periksa Status Prioritas ('Kritis' and 'Tinggi')
     expect(screen.getByText('Kritis')).toBeInTheDocument();
-    expect(screen.getByText('Tinggi')).toBeInTheDocument();
+    expect(screen.getAllByText('Tinggi').length).toBeGreaterThan(0);
     
     // Peringkat 1 is rendered
     expect(screen.getByText('1')).toBeInTheDocument();

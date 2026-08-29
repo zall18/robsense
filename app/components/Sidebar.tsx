@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { logoutAdmin } from '@/app/actions/auth';
 import { 
   LayoutDashboard, 
   Map, 
@@ -54,14 +55,14 @@ export default function Sidebar() {
       </div>
 
       <div className="p-4 border-t border-[var(--color-border-base)] space-y-1">
-        <Link href="#" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors">
+        <Link href="/admin/bantuan" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors">
           <HelpCircle className="w-5 h-5" />
           Bantuan
         </Link>
-        <Link href="#" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors">
+        <button onClick={() => logoutAdmin()} className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors text-left">
           <LogOut className="w-5 h-5" />
           Keluar
-        </Link>
+        </button>
       </div>
     </div>
   );

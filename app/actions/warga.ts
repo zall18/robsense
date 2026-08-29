@@ -112,12 +112,34 @@ export async function submitLaporanBatch(laporanList: { kecamatan: string, gejal
 }
 
 /**
- * Mendapatkan laporan warga untuk peta (hanya yang sudah terverifikasi)
+ * Mendapatkan laporan warga untuk peta dengan filter
  */
-export async function getLaporanWargaForMap() {
+export async function getLaporanWargaForMap(filters?: { waktu?: string | null, kategori?: string | null, verifikasi?: string | null }) {
   try {
+    const where: any = {};
+    
+    if (filters?.verifikasi !== 'Semua Laporan') {
+      where.isVerified = true;
+    }
+
+    if (filters?.waktu === '24 Jam Terakhir') {
+      const yesterday = new Date();
+      yesterday.setHours(yesterday.getHours() - 24);
+      where.createdAt = { gte: yesterday };
+    } else if (filters?.waktu === '7 Hari Terakhir') {
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      where.createdAt = { gte: lastWeek };
+    }
+
+    if (filters?.kategori === 'Demam / Gatal (Air Tanah)') {
+      where.gejala = { contains: 'gatal', mode: 'insensitive' };
+    } else if (filters?.kategori === 'Pernapasan') {
+      where.gejala = { contains: 'napas', mode: 'insensitive' };
+    }
+
     const laporanWargaRaw = await prisma.laporanWarga.findMany({
-      where: { isVerified: true },
+      where,
       orderBy: { createdAt: 'desc' },
       take: 200
     });
@@ -131,15 +153,41 @@ export async function getLaporanWargaForMap() {
 /**
  * Memperbarui status verifikasi laporan warga (Admin)
  */
-export async function toggleVerifyLaporan(id: string, newStatus: boolean) {
+export async function toggleVerifyLaporan(id: string, newStatus: boolean, kategori: string | null = null) {
   try {
     await prisma.laporanWarga.update({
       where: { id },
-      data: { isVerified: newStatus }
+      data: { isVerified: newStatus, kategori: kategori }
     });
     return { success: true };
   } catch (error) {
     console.error("Error toggleVerifyLaporan:", error);
     return { success: false, error: 'Gagal memperbarui status verifikasi' };
+  }
+}
+
+/**
+ * Mendapatkan jumlah laporan warga di kecamatan tertentu pada rentang waktu (+- 12 jam)
+ */
+export async function getLaporanCount(kecamatan: string, timestamp: Date) {
+  try {
+    const start = new Date(timestamp);
+    start.setHours(start.getHours() - 12);
+    const end = new Date(timestamp);
+    end.setHours(end.getHours() + 12);
+    
+    const count = await prisma.laporanWarga.count({
+      where: {
+        kecamatan,
+        createdAt: {
+          gte: start,
+          lte: end
+        }
+      }
+    });
+    return count;
+  } catch (error) {
+    console.error("Error getLaporanCount:", error);
+    return 0;
   }
 }

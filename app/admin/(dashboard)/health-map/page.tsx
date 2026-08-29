@@ -4,18 +4,26 @@ import { ZoomIn, ZoomOut, Crosshair } from 'lucide-react';
 import MapWrapper from '@/app/components/MapWrapper';
 import SelectFilter from '@/app/admin/components/SelectFilter';
 import { getLaporanWargaForMap } from '@/app/actions/warga';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function HealthHeatMapPage() {
+function HealthHeatMapContent() {
+  const searchParams = useSearchParams();
+  const waktu = searchParams.get('waktu');
+  const kategori = searchParams.get('kategori');
+  const verifikasi = searchParams.get('verifikasi');
+
   const [reports, setReports] = useState<any[]>([]);
   const [alarmFilter, setAlarmFilter] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getLaporanWargaForMap().then(data => {
+    setLoading(true);
+    getLaporanWargaForMap({ waktu, kategori, verifikasi }).then(data => {
       setReports(data);
       setLoading(false);
     });
-  }, []);
+  }, [waktu, kategori, verifikasi]);
 
   const activeReports = useMemo(() => {
     if (!alarmFilter) return reports;
@@ -149,5 +157,13 @@ export default function HealthHeatMapPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function HealthHeatMapPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Memuat peta...</div>}>
+      <HealthHeatMapContent />
+    </Suspense>
   );
 }

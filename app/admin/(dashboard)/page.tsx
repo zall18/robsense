@@ -10,6 +10,7 @@ import ManualReportButton from '@/app/admin/components/ManualReportButton';
 import MapWrapper from '@/app/components/MapWrapper';
 import Link from 'next/link';
 import { assignCoordinates } from '@/app/utils/geo';
+import HistoryDetailModal from '@/app/admin/components/HistoryDetailModal';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -106,7 +107,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         {/* Kolom Kiri (Peta Risiko) - Span 2 */}
         <div className="lg:col-span-2 bg-white border border-[var(--color-border-base)] rounded-[16px] overflow-hidden shadow-sm flex flex-col">
           <div className="px-6 py-5 border-b border-[var(--color-border-base)] flex items-center justify-between bg-white">
-            <h2 className="font-semibold text-lg text-[var(--color-text-primary)]">Peta Risiko Genangan Aktif</h2>
+            <h2 className="font-semibold text-lg text-[var(--color-text-primary)]">Peta Status Risiko</h2>
             <div className="flex items-center gap-4 text-xs font-medium text-gray-600">
               <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-600"></span>Tinggi</div>
               <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span>Sedang</div>
@@ -241,9 +242,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     </td>
                     <td className="px-6 py-4 text-center font-bold text-gray-800">{r.ketinggianAir ? r.ketinggianAir.toFixed(1) : '-'}</td>
                     <td className="px-6 py-4 text-center">
-                      <Link href="/admin/history" className="text-gray-400 hover:text-gray-600 transition-colors inline-block">
-                        <MoreVertical className="w-5 h-5 mx-auto" />
-                      </Link>
+                      <HistoryDetailModal data={r} />
                     </td>
                   </tr>
                 );

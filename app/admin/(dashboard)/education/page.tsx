@@ -155,7 +155,11 @@ export default async function EducationPriorityPage({ searchParams }: { searchPa
                       {priorityStatus}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <EducationActionButton />
+                      <EducationActionButton 
+                        kecamatan={row.namaKecamatan}
+                        status={priorityStatus}
+                        coverage={coverage}
+                      />
                     </td>
                   </tr>
                 );

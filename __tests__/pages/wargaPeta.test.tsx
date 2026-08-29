@@ -26,6 +26,13 @@ jest.mock('../../app/warga/peta/ClientMap', () => {
   };
 });
 
+// Mock SearchInput
+jest.mock('../../app/warga/peta/SearchInput', () => {
+  return function DummySearch() {
+    return <div data-testid="search-input">Mock Search</div>;
+  };
+});
+
 describe('WargaPetaPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -33,7 +40,7 @@ describe('WargaPetaPage', () => {
 
   it('renders correctly and fetches recent updates', async () => {
     // Render the async component
-    const Page = await WargaPetaPage();
+    const Page = await WargaPetaPage({ searchParams: Promise.resolve({}) });
     render(Page);
     
     expect(screen.getByText('Peta Status Risiko')).toBeInTheDocument();

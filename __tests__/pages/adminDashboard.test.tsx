@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import DashboardPage from '@/app/admin/page';
+import DashboardPage from '@/app/admin/(dashboard)/page';
 
 jest.mock('lucide-react', () => ({
   Calendar: () => <div data-testid="icon-calendar" />,
@@ -83,7 +83,7 @@ describe('Halaman Dashboard Utama', () => {
     expect(screen.getByText('Dashboard Pemantauan')).toBeInTheDocument();
     
     // Periksa komponen Peta
-    expect(screen.getByText('Peta Risiko Genangan Aktif')).toBeInTheDocument();
+    expect(screen.getByText('Peta Status Risiko')).toBeInTheDocument();
     expect(screen.getByTestId('map-wrapper')).toBeInTheDocument();
     expect(screen.getByText('18')).toBeInTheDocument(); // Klaster Aktif
     

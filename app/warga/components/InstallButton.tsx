@@ -11,6 +11,14 @@ export default function InstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [timeoutReached, setTimeoutReached] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTimeoutReached(true);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     // Check if already installed
@@ -77,7 +85,11 @@ export default function InstallButton() {
                 : 'bg-white/20 text-white/70 cursor-not-allowed'
             }`}
           >
-            {deferredPrompt ? '📲 Instal Aplikasi Sekarang' : 'Memeriksa Kompatibilitas...'}
+            {deferredPrompt 
+              ? '📲 Instal Aplikasi Sekarang' 
+              : timeoutReached 
+                ? '⚠️ Instalasi ditolak / tidak didukung' 
+                : 'Memeriksa Kompatibilitas...'}
           </button>
         </>
       )}

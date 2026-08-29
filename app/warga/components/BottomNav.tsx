@@ -18,7 +18,7 @@ export default function BottomNav() {
   ];
 
   return (
-    <div className="bg-white border-t border-gray-200 flex justify-around items-center h-16 shrink-0 mt-auto shadow-[0_-4px_10px_rgba(0,0,0,0.05)] relative z-50">
+    <div className="bg-white border-t border-gray-200 flex justify-around items-center h-16 shrink-0 mt-auto shadow-[0_-4px_10px_rgba(0,0,0,0.05)] relative z-[999] pb-[env(safe-area-inset-bottom)]">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;

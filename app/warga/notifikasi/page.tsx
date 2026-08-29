@@ -14,7 +14,12 @@ export default function WargaNotifikasiPage() {
   };
 
   const handleTestNotification = async () => {
-    if ('Notification' in window) {
+    try {
+      if (!('Notification' in window)) {
+        alert('Browser ini tidak mendukung Notifikasi Web (Pastikan buka di Chrome/Safari langsung, jangan dari dalam WA/IG).');
+        return;
+      }
+
       let permission = Notification.permission;
       if (permission === 'default') {
         permission = await Notification.requestPermission();
@@ -24,28 +29,37 @@ export default function WargaNotifikasiPage() {
         const title = 'RobSense: Waspada Genangan';
         const options = {
           body: 'Debit air laut terpantau meningkat. Harap waspada.',
-          icon: '/logo.jpeg',
-          vibrate: [200, 100, 200],
+          icon: '/logo.jpeg'
         };
 
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistration().then((registration) => {
-            if (registration) {
-              registration.showNotification(title, options).catch(() => {
-                new Notification(title, options); // Fallback
-              });
-            } else {
-              new Notification(title, options); // Fallback for dev mode
+          const registration = await navigator.serviceWorker.getRegistration();
+          if (registration) {
+            try {
+              await registration.showNotification(title, options);
+            } catch (swError: any) {
+              // Jika Service Worker gagal, coba native Notification
+              try {
+                new Notification(title, options);
+              } catch (nativeError: any) {
+                alert('Gagal memunculkan notif. SW Error: ' + swError.message + ' | Native Error: ' + nativeError.message);
+              }
             }
-          });
+          } else {
+            try {
+              new Notification(title, options);
+            } catch (nativeError: any) {
+              alert('Tidak ada SW. Gagal Native: ' + nativeError.message);
+            }
+          }
         } else {
-          new Notification(title, options); // Fallback
+          new Notification(title, options);
         }
       } else {
-        alert('Mohon izinkan akses notifikasi di pengaturan browser/HP Anda.');
+        alert('Izin notifikasi belum diberikan. Status saat ini: ' + permission);
       }
-    } else {
-      alert('Perangkat/browser Anda belum mendukung fitur Notifikasi Web.');
+    } catch (err: any) {
+      alert('Terjadi kesalahan sistem: ' + err.message);
     }
   };
 

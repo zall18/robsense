@@ -29,10 +29,14 @@ export default function WargaNotifikasiPage() {
         };
 
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.showNotification(title, options);
-          }).catch(() => {
-            new Notification(title, options); // Fallback
+          navigator.serviceWorker.getRegistration().then((registration) => {
+            if (registration) {
+              registration.showNotification(title, options).catch(() => {
+                new Notification(title, options); // Fallback
+              });
+            } else {
+              new Notification(title, options); // Fallback for dev mode
+            }
           });
         } else {
           new Notification(title, options); // Fallback

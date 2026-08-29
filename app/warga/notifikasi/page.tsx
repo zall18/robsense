@@ -33,7 +33,19 @@ export default function WargaNotifikasiPage() {
         };
 
         if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.getRegistration();
+          let registration = await navigator.serviceWorker.getRegistration();
+          
+          // Paksa registrasi manual jika next-pwa gagal inject otomatis di App Router
+          if (!registration) {
+            try {
+              registration = await navigator.serviceWorker.register('/sw.js');
+              // Tunggu sampai SW benar-benar aktif
+              await navigator.serviceWorker.ready;
+            } catch (regError: any) {
+              alert('Gagal registrasi SW manual: ' + regError.message);
+            }
+          }
+
           if (registration) {
             try {
               await registration.showNotification(title, options);
@@ -49,7 +61,7 @@ export default function WargaNotifikasiPage() {
             try {
               new Notification(title, options);
             } catch (nativeError: any) {
-              alert('Tidak ada SW. Gagal Native: ' + nativeError.message);
+              alert('Tidak ada SW (File sw.js tidak ditemukan). Gagal Native: ' + nativeError.message);
             }
           }
         } else {

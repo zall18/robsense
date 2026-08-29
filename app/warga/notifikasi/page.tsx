@@ -9,6 +9,42 @@ export default function WargaNotifikasiPage() {
   const [demoState, setDemoState] = useState<DemoState>('Tinggi');
   const [alertsEnabled, setAlertsEnabled] = useState(true);
 
+  const handleToggleAlerts = () => {
+    setAlertsEnabled(!alertsEnabled);
+  };
+
+  const handleTestNotification = async () => {
+    if ('Notification' in window) {
+      let permission = Notification.permission;
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
+      
+      if (permission === 'granted') {
+        const title = 'RobSense: Waspada Genangan';
+        const options = {
+          body: 'Debit air laut terpantau meningkat. Harap waspada.',
+          icon: '/logo.jpeg',
+          vibrate: [200, 100, 200],
+        };
+
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification(title, options);
+          }).catch(() => {
+            new Notification(title, options); // Fallback
+          });
+        } else {
+          new Notification(title, options); // Fallback
+        }
+      } else {
+        alert('Mohon izinkan akses notifikasi di pengaturan browser/HP Anda.');
+      }
+    } else {
+      alert('Perangkat/browser Anda belum mendukung fitur Notifikasi Web.');
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-full bg-[#F8F9FB] p-6 pb-8 pt-8 relative">
       
@@ -35,17 +71,28 @@ export default function WargaNotifikasiPage() {
       </div>
 
       {/* Header & Toggle */}
-      <div className="flex items-center justify-between mb-6 mt-4">
-        <h1 className="text-2xl font-bold text-gray-900">Notifikasi</h1>
-        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-          <span className="text-[10px] font-bold text-gray-700 uppercase tracking-wide">Peringatan</span>
-          <div 
-            onClick={() => setAlertsEnabled(!alertsEnabled)}
-            className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${alertsEnabled ? 'bg-[#254B94]' : 'bg-gray-300'}`}
-          >
-            <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 shadow-sm transition-all ${alertsEnabled ? 'left-4' : 'left-0.5'}`}></div>
+      <div className="flex flex-col mb-6 mt-4 gap-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Notifikasi</h1>
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
+            <span className="text-[10px] font-bold text-gray-700 uppercase tracking-wide">Peringatan</span>
+            <div 
+              onClick={handleToggleAlerts}
+              className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${alertsEnabled ? 'bg-[#254B94]' : 'bg-gray-300'}`}
+            >
+              <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 shadow-sm transition-all ${alertsEnabled ? 'left-4' : 'left-0.5'}`}></div>
+            </div>
           </div>
         </div>
+
+        {/* Tombol Demo Notif Asli */}
+        <button 
+          onClick={handleTestNotification}
+          className="w-full bg-[#254B94]/10 text-[#254B94] text-xs font-bold py-3 rounded-lg border border-[#254B94]/20 flex justify-center items-center gap-2 active:bg-[#254B94]/20 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+          Uji Coba Notifikasi Asli (HP/Laptop)
+        </button>
       </div>
       
       {/* Peringatan Mendesak (Tergantung Demo State) */}

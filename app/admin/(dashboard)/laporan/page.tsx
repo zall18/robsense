@@ -16,9 +16,30 @@ const prisma = new PrismaClient({ adapter });
 export default async function LaporanWargaPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   const params = await searchParams;
   const kecamatan = params.kecamatan;
+  const waktu = params.waktu;
+
+  let dateFilter = {};
+  if (waktu === 'Hari Ini') {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dateFilter = { gte: today };
+  } else if (waktu === 'Minggu Ini') {
+    const thisWeek = new Date();
+    thisWeek.setDate(thisWeek.getDate() - thisWeek.getDay());
+    thisWeek.setHours(0, 0, 0, 0);
+    dateFilter = { gte: thisWeek };
+  } else if (waktu === 'Bulan Ini') {
+    const thisMonth = new Date();
+    thisMonth.setDate(1);
+    thisMonth.setHours(0, 0, 0, 0);
+    dateFilter = { gte: thisMonth };
+  }
 
   const data = await prisma.laporanWarga.findMany({
-    where: kecamatan ? { kecamatan } : undefined,
+    where: {
+      ...(kecamatan ? { kecamatan } : {}),
+      ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {})
+    },
     orderBy: { createdAt: 'desc' },
     take: 100
   });

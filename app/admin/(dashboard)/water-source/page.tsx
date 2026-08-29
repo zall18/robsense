@@ -135,6 +135,7 @@ export default async function WaterSourcePage({ searchParams }: { searchParams: 
               <tr>
                 <th className="px-6 py-4">Kecamatan</th>
                 <th className="px-6 py-4">Tingkat Risiko</th>
+                <th className="px-6 py-4">Total Populasi</th>
                 <th className="px-6 py-4 w-1/3">Rasio Sumber Air (Tanah vs PDAM)</th>
                 <th className="px-6 py-4 text-center">% Air Tanah</th>
                 <th className="px-6 py-4 text-center">% PDAM</th>
@@ -150,6 +151,9 @@ export default async function WaterSourcePage({ searchParams }: { searchParams: 
                     <td className="px-6 py-5 font-semibold text-[var(--color-text-primary)]">{row.namaKecamatan}</td>
                     <td className="px-6 py-5">
                       <Badge text={row.tingkatRisiko} variant={row.tingkatRisiko} />
+                    </td>
+                    <td className="px-6 py-5 font-medium text-gray-700">
+                      {row.totalPopulasi.toLocaleString('id-ID')}
                     </td>
                     <td className="px-6 py-5">
                        <div className="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden flex">

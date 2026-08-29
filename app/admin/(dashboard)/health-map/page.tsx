@@ -72,25 +72,15 @@ function HealthHeatMapContent() {
               <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Rentang Waktu</label>
               <SelectFilter 
                 paramName="waktu"
-                defaultValue="24 Jam Terakhir"
+                defaultValue="Semua Waktu"
                 options={[
+                  { label: 'Semua Waktu', value: 'Semua Waktu' },
                   { label: '24 Jam Terakhir', value: '24 Jam Terakhir' },
                   { label: '7 Hari Terakhir', value: '7 Hari Terakhir' }
                 ]}
               />
             </div>
             
-            <div>
-              <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Kategori Gejala</label>
-              <SelectFilter 
-                paramName="kategori"
-                defaultValue="Demam / Gatal (Air Tanah)"
-                options={[
-                  { label: 'Demam / Gatal (Air Tanah)', value: 'Demam / Gatal (Air Tanah)' },
-                  { label: 'Pernapasan', value: 'Pernapasan' }
-                ]}
-              />
-            </div>
             
             <div>
               <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">Tingkat Verifikasi</label>
@@ -110,9 +100,9 @@ function HealthHeatMapContent() {
         <div className="bg-white p-5 rounded-[12px] border border-[var(--color-border-base)] shadow-sm">
           <h3 className="font-bold text-[var(--color-text-primary)] mb-3 text-sm">Intensitas Klaster</h3>
           <div className="space-y-2 text-sm text-[var(--color-text-primary)]">
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[var(--color-risk-high)]"></div> Tinggi (&gt;50 laporan)</div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[var(--color-risk-medium)]"></div> Sedang (20-50)</div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[var(--color-brand-primary)]"></div> Rendah (&lt;20)</div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[var(--color-risk-high)]"></div> Tinggi (&ge; 5 laporan)</div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[var(--color-risk-medium)]"></div> Sedang (3-4 laporan)</div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[var(--color-risk-low)]"></div> Rendah (&lt; 3 laporan)</div>
           </div>
           
           <hr className="my-4 border-[var(--color-border-base)]" />

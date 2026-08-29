@@ -1,7 +1,9 @@
-import React from 'react';
+'use client';
+import React, { useState } from 'react';
 import { HelpCircle, ChevronRight, BookOpen, Mail, MessageSquare } from 'lucide-react';
 
 export default function BantuanPage() {
+  const [isPanduanOpen, setIsPanduanOpen] = useState(false);
   return (
     <div className="max-w-4xl mx-auto w-full pb-10">
       <div className="mb-8">
@@ -14,7 +16,10 @@ export default function BantuanPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center hover:border-blue-300 transition-colors cursor-pointer">
+        <div 
+          onClick={() => setIsPanduanOpen(!isPanduanOpen)}
+          className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center hover:border-blue-300 transition-colors cursor-pointer"
+        >
           <BookOpen className="w-10 h-10 text-blue-500 mb-3" />
           <h3 className="font-semibold text-gray-900 mb-1">Panduan Pengguna</h3>
           <p className="text-sm text-gray-500">Pelajari cara menggunakan semua fitur Dashboard.</p>
@@ -30,6 +35,20 @@ export default function BantuanPage() {
           <p className="text-sm text-gray-500">Laporkan masalah atau bug teknis.</p>
         </div>
       </div>
+
+      {isPanduanOpen && (
+        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 shadow-sm mb-8 animate-in fade-in slide-in-from-top-4">
+          <h2 className="font-bold text-lg text-blue-900 mb-4 flex items-center gap-2">
+            <BookOpen className="w-5 h-5" /> Panduan Cepat Penggunaan Dashboard
+          </h2>
+          <ol className="list-decimal list-inside space-y-3 text-sm text-blue-800">
+            <li><strong>Laporan Warga:</strong> Lihat semua keluhan dari warga. Verifikasi laporan jika memang valid, dan atur tingkat risikonya.</li>
+            <li><strong>Health Heat Map:</strong> Pantau sebaran titik-titik keluhan di atas peta. Zona berwarna akan berubah sesuai jumlah laporan.</li>
+            <li><strong>Riwayat Genangan:</strong> Pantau ketinggian air dan status cuaca dari BMKG secara berkala.</li>
+            <li><strong>Indikator Air:</strong> Perhatikan komposisi warga yang masih bergantung pada air tanah di setiap kecamatan.</li>
+          </ol>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-100 bg-gray-50">

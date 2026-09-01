@@ -1,5 +1,5 @@
 # 🌊 RobSense
-> **"Dari Akar Masalah Air Tanah ke Kota Rendah Risiko"**[cite: 3]
+> **"Dari Akar Masalah Air Tanah ke Kota Rendah Risiko"**
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat&logo=next.js)](https://nextjs.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-ORM-1B222D?style=flat&logo=prisma)](https://www.prisma.io/)
@@ -7,7 +7,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
 [![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8?style=flat&logo=pwa)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
 
-**RobSense** adalah platform GovTech dan *Circular Water Awareness* yang dirancang untuk membantu kota mengurangi ketergantungan pada air tanah melalui edukasi berbasis risiko[cite: 3]. Proyek ini dikembangkan untuk kompetisi **Diponegoro Software Development Competition (DSDC) ANFORCOM 2026**[cite: 1].
+**RobSense** adalah platform GovTech dan *Circular Water Awareness* yang dirancang untuk membantu kota mengurangi ketergantungan pada air tanah melalui edukasi berbasis risiko. Proyek ini dikembangkan untuk kompetisi **Diponegoro Software Development Competition (DSDC) ANFORCOM 2026**.
 
 ---
 
@@ -22,58 +22,58 @@ Prototipe MVP aplikasi telah di-deploy dan dapat diuji coba melalui tautan berik
 
 ## 2. Latar Belakang Masalah (Rantai Sebab-Akibat)
 
-Banjir rob di pesisir utara Jawa terus memburuk[cite: 3]. Alih-alih berfokus pada infrastruktur hilir, RobSense membidik penyebab utama dari sisi hulu: **Eksploitasi air tanah → tanah ambles → rob makin parah → dampak kesehatan warga pesisir**[cite: 3]. 
+Banjir rob di pesisir utara Jawa terus memburuk[cite: 3]. Alih-alih berfokus pada infrastruktur hilir, RobSense membidik penyebab utama dari sisi hulu: **Eksploitasi air tanah → tanah ambles → rob makin parah → dampak kesehatan warga pesisir**. 
 
-RobSense memanfaatkan sistem Peringatan Dini rob sebagai pemicu untuk mengubah perilaku masyarakat agar beralih ke praktik ekonomi sirkular air[cite: 3].
+RobSense memanfaatkan sistem Peringatan Dini rob sebagai pemicu untuk mengubah perilaku masyarakat agar beralih ke praktik ekonomi sirkular air.
 
 ---
 
 ## 3. Tiga Modul MVP
 
-Aplikasi ini tidak memisahkan kode untuk warga dan admin, melainkan menggunakan satu ekosistem yang terbagi menjadi 3 modul utama[cite: 3]:
+Aplikasi ini tidak memisahkan kode untuk warga dan admin, melainkan menggunakan satu ekosistem yang terbagi menjadi 3 modul utama:
 
-*   **Modul 1 - Risk Scoring Engine (Backend)**: Menarik data pasang surut/cuaca dari API publik resmi BMKG (dengan jalur cadangan input manual) dan menggabungkannya dengan tabel bobot amblesan tanah statis per kecamatan[cite: 3]. Logika *rule-based* ini menghasilkan status risiko (rendah/sedang/tinggi)[cite: 3].
-*   **Modul 2 - Portal Warga (Aplikasi Publik)**: Menampilkan peta status warna (hijau/kuning/merah) tanpa *login*[cite: 3]. Menyediakan *onboarding* notifikasi terpadu di mana warga menjawab sumber air utamanya (PDAM/air tanah) dan mendapatkan *feedback* instan berupa anjuran pengurangan air tanah jika berada di zona risiko tinggi[cite: 3]. Terdapat form lapor gejala dengan *rate-limiting* (maksimal satu laporan/IP per 24 jam)[cite: 3].
-*   **Modul 3 - Dashboard Admin (Puskesmas/Pemkot)**: Pusat kendali visual yang menampilkan *Health Heat Map* (zona ditandai merah hanya jika jumlah laporan melampaui ambang batas), riwayat status genangan, serta indikator cakupan sumber air (Air Tanah vs PDAM) sebagai metrik wilayah prioritas edukasi[cite: 3].
+*   **Modul 1 - Risk Scoring Engine (Backend)**: Menarik data pasang surut/cuaca dari API publik resmi BMKG (dengan jalur cadangan input manual) dan menggabungkannya dengan tabel bobot amblesan tanah statis per kecamatan. Logika *rule-based* ini menghasilkan status risiko (rendah/sedang/tinggi).
+*   **Modul 2 - Portal Warga (Aplikasi Publik)**: Menampilkan peta status warna (hijau/kuning/merah) tanpa *login*. Menyediakan *onboarding* notifikasi terpadu di mana warga menjawab sumber air utamanya (PDAM/air tanah) dan mendapatkan *feedback* instan berupa anjuran pengurangan air tanah jika berada di zona risiko tinggi. Terdapat form lapor gejala dengan *rate-limiting* (maksimal satu laporan/IP per 24 jam).
+*   **Modul 3 - Dashboard Admin (Puskesmas/Pemkot)**: Pusat kendali visual yang menampilkan *Health Heat Map* (zona ditandai merah hanya jika jumlah laporan melampaui ambang batas), riwayat status genangan, serta indikator cakupan sumber air (Air Tanah vs PDAM) sebagai metrik wilayah prioritas edukasi.
 
 ---
 
 ## 4. Tech Stack (Satu Basis Kode)
 
-RobSense menggunakan satu basis kode (Single Codebase) untuk menghindari kompleksitas yang tidak perlu bagi tim kecil dengan waktu terbatas[cite: 3]:
-*   **Framework Aplikasi**: Next.js (Fullstack & API Routes), dikonfigurasi sebagai PWA agar dapat dipasang di HP tanpa aplikasi *native* terpisah[cite: 3].
-*   **Notifikasi**: Web Push API (tanpa layanan pihak ketiga berbayar)[cite: 3].
-*   **Basis Data**: PostgreSQL + Prisma ORM (cukup untuk skala data historis dan laporan warga)[cite: 3].
-*   **Peta Visual**: Leaflet.js yang ringan dan interaktif[cite: 3].
-*   **Hosting**: Vercel (untuk iterasi cepat)[cite: 3].
+RobSense menggunakan satu basis kode (Single Codebase) untuk menghindari kompleksitas yang tidak perlu bagi tim kecil dengan waktu terbatas:
+*   **Framework Aplikasi**: Next.js (Fullstack & API Routes), dikonfigurasi sebagai PWA agar dapat dipasang di HP tanpa aplikasi *native* terpisah.
+*   **Notifikasi**: Web Push API (tanpa layanan pihak ketiga berbayar).
+*   **Basis Data**: PostgreSQL + Prisma ORM (cukup untuk skala data historis dan laporan warga).
+*   **Peta Visual**: Leaflet.js yang ringan dan interaktif.
+*   **Hosting**: Vercel (untuk iterasi cepat).
 
 ---
 
 ## 5. Timeline Eksekusi (3 Minggu)
 
-Pengembangan MVP ini dieksekusi dengan target hingga 31 Agustus 2026[cite: 3]:
-*   **Minggu 1**: Pembangunan *Risk Scoring Engine*, skema database, dan tabel bobot amblesan[cite: 3].
-*   **Minggu 2**: Pembangunan Portal Warga, peta status, *onboarding* notifikasi air, dan form lapor gejala[cite: 3].
-*   **Minggu 3**: Pembangunan Dashboard Admin (*heat map*, ambang batas, tabel cakupan), uji coba *end-to-end*, rekam video demo, dan penulisan proposal final[cite: 3].
+Pengembangan MVP ini dieksekusi dengan target hingga 31 Agustus 2026:
+*   **Minggu 1**: Pembangunan *Risk Scoring Engine*, skema database, dan tabel bobot amblesan.
+*   **Minggu 2**: Pembangunan Portal Warga, peta status, *onboarding* notifikasi air, dan form lapor gejala.
+*   **Minggu 3**: Pembangunan Dashboard Admin (*heat map*, ambang batas, tabel cakupan), uji coba *end-to-end*, rekam video demo, dan penulisan proposal final.
 
 ---
 
 ## 6. Batasan Klaim Impact Projection
 
-Untuk menghindari kesan *overclaim* pada solusi perangkat lunak, batasan klaim telah ditetapkan[cite: 3]:
-*   **Dapat Diklaim (Terverifikasi Sistem)**: Jumlah warga di kecamatan risiko tinggi yang terjangkau peringatan dini, jumlah pendaftar anjuran pengurangan air tanah, dan ambang batas deteksi *syndromic surveillance*[cite: 3].
-*   **Tidak Boleh Diklaim**: Penurunan laju amblesan tanah (proses geologis), penurunan kasus penyakit aktual, dan perubahan perilaku warga yang diklaim secara sepihak tanpa data sistem[cite: 3].
+Untuk menghindari kesan *overclaim* pada solusi perangkat lunak, batasan klaim telah ditetapkan:
+*   **Dapat Diklaim (Terverifikasi Sistem)**: Jumlah warga di kecamatan risiko tinggi yang terjangkau peringatan dini, jumlah pendaftar anjuran pengurangan air tanah, dan ambang batas deteksi *syndromic surveillance*.
+*   **Tidak Boleh Diklaim**: Penurunan laju amblesan tanah (proses geologis), penurunan kasus penyakit aktual, dan perubahan perilaku warga yang diklaim secara sepihak tanpa data sistem.
 
-*(Catatan: Kami juga secara sengaja tidak membangun algoritma penjadwalan air dinamis, tracking open-rate notifikasi, maupun AI/Computer Vision demi menjaga kesederhanaan MVP)*[cite: 3].
+*(Catatan: Kami juga secara sengaja tidak membangun algoritma penjadwalan air dinamis, tracking open-rate notifikasi, maupun AI/Computer Vision demi menjaga kesederhanaan MVP)*.
 
 ---
 
 ## 7. Sumber Data & Atribusi Resmi (BMKG)
 
 Sistem ini bergantung pada data terbuka pemerintah. Kami memberikan atribusi penuh kepada:
-1. **BMKG**: Data Prakiraan Cuaca Umum (`api.bmkg.go.id`) dan Pasang Surut Maritim (`maritim.bmkg.go.id`)[cite: 4]. **RobSense mencantumkan dan mengakui BMKG sebagai sumber data utama peringatan dini cuaca**[cite: 4].
-2. **Badan Geologi & ESDM**: Data laju penurunan muka tanah pesisir utara Semarang[cite: 4].
-3. **BNPB**: Metodologi kalkulasi didasarkan pada Perka No. 2 Tahun 2012[cite: 4].
+1. **BMKG**: Data Prakiraan Cuaca Umum (`api.bmkg.go.id`) dan Pasang Surut Maritim (`maritim.bmkg.go.id`). **RobSense mencantumkan dan mengakui BMKG sebagai sumber data utama peringatan dini cuaca**.
+2. **Badan Geologi & ESDM**: Data laju penurunan muka tanah pesisir utara Semarang.
+3. **BNPB**: Metodologi kalkulasi didasarkan pada Perka No. 2 Tahun 2012.
 
 ---
 

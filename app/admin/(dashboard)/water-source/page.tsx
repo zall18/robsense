@@ -1,16 +1,9 @@
 import React from 'react';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { Droplet, ArrowUpRight, ArrowRight, Download, Filter } from 'lucide-react';
 import Badge from '@/app/components/Badge';
 import SelectFilter from '@/app/admin/components/SelectFilter';
 import ExportButton from '@/app/admin/components/ExportButton';
-
-const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 export default async function WaterSourcePage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   const params = await searchParams;
@@ -172,7 +165,7 @@ export default async function WaterSourcePage({ searchParams }: { searchParams: 
               })}
               {profiles.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                     Tidak ada data profil kecamatan.
                   </td>
                 </tr>

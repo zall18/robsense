@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server';
 import { calculateRiskScore } from '@/lib/riskEngine';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import prisma from '@/lib/prisma';
 import { fetchMarineWeather, fetchDistrictWeather } from '@/lib/fetchWeather';
-
-const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 export async function POST(request: Request) {
   try {
     // 1. Validasi Token (Mencegah Abuse API / Unauthorized Call)
+    const expectedSecret = process.env.CRON_SECRET || 'robsense_cron_secret_dsdc_2026';
     const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (authHeader !== `Bearer ${expectedSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -1,14 +1,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
+import prisma from '@/lib/prisma';
 import { assignCoordinates } from '@/app/utils/geo';
-
-const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 import ClientMap from './ClientMap';
 import SearchInput from './SearchInput';

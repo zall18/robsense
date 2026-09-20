@@ -1,17 +1,10 @@
 'use server';
 
-import { PrismaClient, LaporanWarga } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { assignCoordinates } from '@/app/utils/geo';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
 import { z } from 'zod';
-import { headers } from 'next/headers';
-
-// Kita pastikan inisiasi koneksi sama dengan yang lain
-const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+import { headers, cookies } from 'next/headers';
+import { verifyAdminToken } from '@/lib/auth';
 
 /**
  * Mendapatkan persentase risiko berdasarkan data ProfilKecamatan
@@ -51,16 +44,24 @@ const LaporanSchema = z.object({
 });
 
 /**
- * Menyimpan laporan warga ke database
+ * Menyimpan laporan warga ke database dengan rate-limiting 5 menit per IP (Admin dikecualikan)
  */
 export async function submitLaporan(kecamatan: string, gejala: string) {
   try {
-    // 0. Ambil IP Address untuk Rate Limiting
-    const headersList = await headers();
-    const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown';
+    // 0. Cek apakah pemanggil adalah Admin (bypass rate-limit)
+    const cookieStore = await cookies();
+    const adminToken = cookieStore.get('admin_token')?.value;
+    const isAdmin = await verifyAdminToken(adminToken);
 
-    // 1. Cek Rate-Limiting (5 Menit)
-    if (ipAddress !== 'unknown') {
+    // Ambil IP Address untuk Rate Limiting
+    const headersList = await headers();
+    const forwarded = headersList.get('x-forwarded-for');
+    const ipAddress = forwarded 
+      ? forwarded.split(',')[0].trim() 
+      : (headersList.get('x-real-ip') || 'unknown');
+
+    // 1. Cek Rate-Limiting (1 laporan per 5 Menit per IP untuk warga publik)
+    if (!isAdmin && ipAddress !== 'unknown') {
       const lastReport = await prisma.laporanWarga.findFirst({
         where: { ipAddress },
         orderBy: { createdAt: 'desc' }
@@ -69,7 +70,11 @@ export async function submitLaporan(kecamatan: string, gejala: string) {
       if (lastReport) {
         const minutesDiff = (new Date().getTime() - lastReport.createdAt.getTime()) / (1000 * 60);
         if (minutesDiff < 5) {
-          return { success: false, error: `Anda melapor terlalu cepat. Harap tunggu ${Math.ceil(5 - minutesDiff)} menit lagi.` };
+          const remainingMinutes = Math.ceil(5 - minutesDiff);
+          return { 
+            success: false, 
+            error: `Anda hanya dapat mengirim 1 laporan setiap 5 menit. Harap tunggu ${remainingMinutes} menit lagi.` 
+          };
         }
       }
     }
@@ -88,7 +93,43 @@ export async function submitLaporan(kecamatan: string, gejala: string) {
     return { success: true, id: newLaporan.id };
   } catch (error) {
     console.error("Error submitLaporan:", error);
-    return { success: false, error: 'Gagal menyimpan laporan' };
+    return { success: false, error: 'Gagal menyimpan laporan. Silakan periksa kembali isian form Anda.' };
+  }
+}
+
+/**
+ * Menyimpan preferensi Onboarding warga ke ProfilKecamatan
+ * Menambah pendaftar edukasi dan pengguna air tanah jika relevan
+ */
+export async function saveOnboardingResult(kecamatan: string, airType: string) {
+  try {
+    const existing = await prisma.profilKecamatan.findUnique({
+      where: { namaKecamatan: kecamatan }
+    });
+
+    if (existing) {
+      await prisma.profilKecamatan.update({
+        where: { namaKecamatan: kecamatan },
+        data: {
+          pendaftarEdukasi: { increment: 1 },
+          ...(airType === 'Air Tanah' ? { penggunaAirTanah: { increment: 1 } } : {})
+        }
+      });
+    } else {
+      await prisma.profilKecamatan.create({
+        data: {
+          namaKecamatan: kecamatan,
+          tingkatRisiko: 'Sedang',
+          pendaftarEdukasi: 1,
+          totalPopulasi: 30000,
+          penggunaAirTanah: airType === 'Air Tanah' ? 1 : 0
+        }
+      });
+    }
+    return { success: true };
+  } catch (error) {
+    console.error("Error saveOnboardingResult:", error);
+    return { success: false, error: 'Gagal mencatat preferensi wilayah' };
   }
 }
 
@@ -189,5 +230,86 @@ export async function getLaporanCount(kecamatan: string, timestamp: Date) {
   } catch (error) {
     console.error("Error getLaporanCount:", error);
     return 0;
+  }
+}
+
+/**
+ * Mengambil status notifikasi peringatan dini dinamis dari database untuk warga
+ */
+export async function getDynamicAlerts(kecamatan?: string) {
+  try {
+    const alerts = await prisma.dataCuacaGenangan.findMany({
+      where: kecamatan ? { kecamatan } : undefined,
+      orderBy: { timestamp: 'desc' },
+      take: 5
+    });
+
+    const highRiskAlert = alerts.find(a => a.statusRisiko === 'Tinggi');
+    const mediumRiskAlert = alerts.find(a => a.statusRisiko === 'Sedang');
+
+    return {
+      activeAlert: highRiskAlert || mediumRiskAlert || alerts[0] || null,
+      recentAlerts: alerts
+    };
+  } catch (error) {
+    console.error("Error getDynamicAlerts:", error);
+    return { activeAlert: null, recentAlerts: [] };
+  }
+}
+
+/**
+ * Mengambil analitik Health Heat Map: tren mingguan dan kecamatan terdampak parah
+ */
+export async function getHealthMapAnalytics() {
+  try {
+    const now = new Date();
+
+    // Rentang minggu ini (7 hari terakhir)
+    const thisWeekStart = new Date(now);
+    thisWeekStart.setDate(thisWeekStart.getDate() - 7);
+
+    // Rentang minggu lalu (14-7 hari lalu)
+    const lastWeekStart = new Date(now);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 14);
+
+    const [thisWeekCount, lastWeekCount, allReports] = await Promise.all([
+      prisma.laporanWarga.count({
+        where: { createdAt: { gte: thisWeekStart } }
+      }),
+      prisma.laporanWarga.count({
+        where: {
+          createdAt: { gte: lastWeekStart, lt: thisWeekStart }
+        }
+      }),
+      prisma.laporanWarga.groupBy({
+        by: ['kecamatan'],
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 1
+      })
+    ]);
+
+    // Hitung persentase tren
+    let trendPercent = 0;
+    if (lastWeekCount > 0) {
+      trendPercent = Math.round(((thisWeekCount - lastWeekCount) / lastWeekCount) * 100);
+    } else if (thisWeekCount > 0) {
+      trendPercent = 100; // Dari 0 ke positif = +100%
+    }
+
+    // Kecamatan dengan laporan terbanyak
+    const topKecamatan = allReports.length > 0
+      ? allReports[0].kecamatan
+      : 'Belum ada data';
+
+    return {
+      trendPercent,
+      topKecamatan,
+      thisWeekCount,
+      lastWeekCount
+    };
+  } catch (error) {
+    console.error("Error getHealthMapAnalytics:", error);
+    return { trendPercent: 0, topKecamatan: 'N/A', thisWeekCount: 0, lastWeekCount: 0 };
   }
 }

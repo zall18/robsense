@@ -62,7 +62,7 @@ export default function WargaLaporPage() {
       setCooldownTime(COOLDOWN_DURATION);
       // Reset form if wanted, or leave it and let user read success message
     } else {
-      alert("Terjadi kesalahan. Silakan coba lagi.");
+      alert(result.error || "Terjadi kesalahan. Silakan coba lagi.");
     }
   };
 

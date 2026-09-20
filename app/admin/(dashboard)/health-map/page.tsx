@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ZoomIn, ZoomOut, Crosshair } from 'lucide-react';
 import MapWrapper from '@/app/components/MapWrapper';
 import SelectFilter from '@/app/admin/components/SelectFilter';
-import { getLaporanWargaForMap } from '@/app/actions/warga';
+import { getLaporanWargaForMap, getHealthMapAnalytics } from '@/app/actions/warga';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -16,6 +16,7 @@ function HealthHeatMapContent() {
   const [reports, setReports] = useState<any[]>([]);
   const [alarmFilter, setAlarmFilter] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState<{ trendPercent: number; topKecamatan: string }>({ trendPercent: 0, topKecamatan: '...' });
 
   useEffect(() => {
     setLoading(true);
@@ -24,6 +25,10 @@ function HealthHeatMapContent() {
       setLoading(false);
     });
   }, [waktu, kategori, verifikasi]);
+
+  useEffect(() => {
+    getHealthMapAnalytics().then(setAnalytics);
+  }, []);
 
   const activeReports = useMemo(() => {
     if (!alarmFilter) return reports;
@@ -133,15 +138,15 @@ function HealthHeatMapContent() {
             </div>
             <div className="bg-white p-3 rounded-[8px] border border-[var(--color-border-base)]">
               <div className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-text-secondary)] mb-1">Tren Mingguan</div>
-              <div className="text-lg font-bold text-[var(--color-risk-high)] flex items-center gap-1">
-                ↗ +12%
+              <div className={`text-lg font-bold flex items-center gap-1 ${analytics.trendPercent > 0 ? 'text-[var(--color-risk-high)]' : analytics.trendPercent < 0 ? 'text-green-600' : 'text-gray-500'}`}>
+                {analytics.trendPercent > 0 ? '↗' : analytics.trendPercent < 0 ? '↘' : '→'} {analytics.trendPercent > 0 ? '+' : ''}{analytics.trendPercent}%
               </div>
             </div>
           </div>
           
           <div className="bg-white p-3 rounded-[8px] border border-[var(--color-border-base)]">
             <div className="text-[10px] uppercase font-bold tracking-wider text-[var(--color-text-secondary)] mb-1">Kecamatan Terdampak Parah</div>
-            <div className="font-bold text-[var(--color-text-primary)]">Semarang Utara</div>
+            <div className="font-bold text-[var(--color-text-primary)]">{analytics.topKecamatan}</div>
           </div>
         </div>
 

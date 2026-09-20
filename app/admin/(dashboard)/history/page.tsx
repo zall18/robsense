@@ -1,17 +1,11 @@
 import React from 'react';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Calendar, Download, Filter, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import prisma from '@/lib/prisma';
+import Link from 'next/link';
+import { Calendar, Download, Filter, TrendingUp, TrendingDown, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
 import Badge from '@/app/components/Badge';
 import SelectFilter from '@/app/admin/components/SelectFilter';
 import ExportButton from '@/app/admin/components/ExportButton';
 import HistoryDetailModal from '@/app/admin/components/HistoryDetailModal';
-
-const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 // Fungsi helper untuk mapping
 function getLevelSiaga(risiko: string, air: number | null) {
@@ -32,6 +26,8 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   const params = await searchParams;
   const kecamatan = params.kecamatan;
   const waktu = params.waktu;
+  const currentPage = Math.max(1, parseInt(params.page || '1', 10) || 1);
+  const pageSize = 10;
 
   let dateFilter = {};
   if (waktu === 'Hari Ini') {
@@ -50,25 +46,43 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
     dateFilter = { gte: thisMonth };
   }
 
-  const data = await prisma.dataCuacaGenangan.findMany({
-    where: {
-      ...(kecamatan ? { kecamatan } : {}),
-      ...(Object.keys(dateFilter).length > 0 ? { timestamp: dateFilter } : {})
-    },
-    orderBy: { timestamp: 'desc' },
-    take: 50 // Show more data for filtering
-  });
+  const whereClause = {
+    ...(kecamatan ? { kecamatan } : {}),
+    ...(Object.keys(dateFilter).length > 0 ? { timestamp: dateFilter } : {})
+  };
 
-  // Get distinct kecamatan for filter options
-  const distinctKecamatan = await prisma.profilKecamatan.findMany({
-    select: { namaKecamatan: true },
-    orderBy: { namaKecamatan: 'asc' }
-  });
-  
+  const [data, totalCount, distinctKecamatan] = await Promise.all([
+    prisma.dataCuacaGenangan.findMany({
+      where: whereClause,
+      orderBy: { timestamp: 'desc' },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize
+    }),
+    prisma.dataCuacaGenangan.count({
+      where: whereClause
+    }),
+    prisma.profilKecamatan.findMany({
+      select: { namaKecamatan: true },
+      orderBy: { namaKecamatan: 'asc' }
+    })
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const startRecord = totalCount > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+  const endRecord = Math.min(currentPage * pageSize, totalCount);
+
   const kecamatanOptions = distinctKecamatan.map(k => ({
     label: `Kec. ${k.namaKecamatan}`,
     value: k.namaKecamatan
   }));
+
+  const buildPageUrl = (pageNumber: number) => {
+    const q = new URLSearchParams();
+    if (kecamatan) q.set('kecamatan', kecamatan);
+    if (waktu) q.set('waktu', waktu);
+    q.set('page', pageNumber.toString());
+    return `/admin/history?${q.toString()}`;
+  };
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto">
@@ -76,7 +90,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
         <div>
           <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Riwayat Genangan</h1>
           <p className="text-[var(--color-text-secondary)] mt-2">
-            Pantau riwayat level air dan status genangan di berbagai kecamatan.
+            Pantau riwayat level air dan status genangan di berbagai kecamatan secara dinamis.
           </p>
         </div>
         
@@ -166,16 +180,62 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
           </table>
         </div>
         
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-[var(--color-border-base)] flex items-center justify-between bg-white text-sm text-[var(--color-text-secondary)]">
-          <span>Menampilkan 1–{data.length} dari 124 data</span>
+        {/* Pagination Dinamis */}
+        <div className="px-6 py-4 border-t border-[var(--color-border-base)] flex flex-col sm:flex-row items-center justify-between gap-3 bg-white text-sm text-[var(--color-text-secondary)]">
+          <span>Menampilkan {startRecord}–{endRecord} dari {totalCount} data</span>
           <div className="flex items-center gap-1">
-            <button className="px-2 py-1 border border-[var(--color-border-base)] rounded hover:bg-gray-50">&lt;</button>
-            <button className="px-3 py-1 border border-[var(--color-brand-primary)] bg-blue-50 text-[var(--color-brand-primary)] rounded font-medium">1</button>
-            <button className="px-3 py-1 border border-[var(--color-border-base)] rounded hover:bg-gray-50">2</button>
-            <button className="px-3 py-1 border border-[var(--color-border-base)] rounded hover:bg-gray-50">3</button>
-            <span className="px-2">...</span>
-            <button className="px-2 py-1 border border-[var(--color-border-base)] rounded hover:bg-gray-50">&gt;</button>
+            {currentPage > 1 ? (
+              <Link 
+                href={buildPageUrl(currentPage - 1)}
+                className="p-1.5 border border-[var(--color-border-base)] rounded hover:bg-gray-50 text-gray-700"
+                title="Halaman Sebelumnya"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Link>
+            ) : (
+              <span className="p-1.5 border border-gray-200 rounded text-gray-300 cursor-not-allowed">
+                <ChevronLeft className="w-4 h-4" />
+              </span>
+            )}
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+              .map((p, idx, arr) => {
+                const prev = arr[idx - 1];
+                const showEllipsis = prev && p - prev > 1;
+
+                return (
+                  <React.Fragment key={p}>
+                    {showEllipsis && <span className="px-2 text-gray-400">...</span>}
+                    {p === currentPage ? (
+                      <span className="px-3 py-1 border border-[var(--color-brand-primary)] bg-blue-50 text-[var(--color-brand-primary)] rounded font-medium">
+                        {p}
+                      </span>
+                    ) : (
+                      <Link 
+                        href={buildPageUrl(p)}
+                        className="px-3 py-1 border border-[var(--color-border-base)] rounded hover:bg-gray-50 text-gray-700"
+                      >
+                        {p}
+                      </Link>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+
+            {currentPage < totalPages ? (
+              <Link 
+                href={buildPageUrl(currentPage + 1)}
+                className="p-1.5 border border-[var(--color-border-base)] rounded hover:bg-gray-50 text-gray-700"
+                title="Halaman Selanjutnya"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <span className="p-1.5 border border-gray-200 rounded text-gray-300 cursor-not-allowed">
+                <ChevronRight className="w-4 h-4" />
+              </span>
+            )}
           </div>
         </div>
       </div>

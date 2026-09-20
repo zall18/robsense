@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { getRiskData } from '@/app/actions/warga';
+import { getRiskData, saveOnboardingResult } from '@/app/actions/warga';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckCircle } from 'lucide-react';
@@ -32,8 +32,14 @@ export default function WargaOnboardingPage() {
   const handleNextStep2 = async () => {
     if (kecamatan) {
       setLoading(true);
+      // Simpan preferensi onboarding ke ProfilKecamatan database
+      await saveOnboardingResult(kecamatan, airType);
       const data = await getRiskData(kecamatan);
       setRiskData(data);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userKecamatan', kecamatan);
+        localStorage.setItem('userAirType', airType);
+      }
       setLoading(false);
       setStep(3); // Result page
     }

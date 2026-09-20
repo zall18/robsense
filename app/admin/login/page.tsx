@@ -68,13 +68,11 @@ export default function AdminLoginPage() {
               <input
                 type="password"
                 name="password"
-                defaultValue="admin123"
                 required
                 className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-[10px] text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-800 transition-all bg-gray-50 focus:bg-white"
-                placeholder="Masukkan kata sandi"
+                placeholder="••••••••"
               />
             </div>
-            <p className="mt-2 text-[11px] text-gray-500 font-medium">Tip: Gunakan sandi "admin123"</p>
           </div>
 
           <button
@@ -93,7 +91,7 @@ export default function AdminLoginPage() {
       </div>
       
       <div className="mt-8 text-center text-xs text-gray-400">
-        &copy; 2024 Robsense MVP.
+        &copy; 2026 RobSense Platform. All rights reserved.
       </div>
     </div>
   );

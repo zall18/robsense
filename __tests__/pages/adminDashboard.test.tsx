@@ -61,6 +61,7 @@ jest.mock('@prisma/client', () => {
         },
         laporanWarga: {
           findMany: jest.fn().mockResolvedValue([]),
+          count: jest.fn().mockResolvedValue(100),
         }
       };
     })
@@ -85,7 +86,8 @@ describe('Halaman Dashboard Utama', () => {
     // Periksa komponen Peta
     expect(screen.getByText('Peta Status Risiko')).toBeInTheDocument();
     expect(screen.getByTestId('map-wrapper')).toBeInTheDocument();
-    expect(screen.getByText('18')).toBeInTheDocument(); // Klaster Aktif
+    expect(screen.getByText('Wilayah Siaga')).toBeInTheDocument();
+    expect(screen.getByText('100 Total Laporan Warga')).toBeInTheDocument();
     
     // Periksa Distribusi Sumber Air
     expect(screen.getByText('Distribusi Sumber Air')).toBeInTheDocument();

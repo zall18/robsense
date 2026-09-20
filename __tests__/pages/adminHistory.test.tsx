@@ -9,7 +9,9 @@ jest.mock('lucide-react', () => ({
   Download: () => <div data-testid="icon-download" />,
   TrendingUp: () => <div data-testid="icon-trend-up" />,
   TrendingDown: () => <div data-testid="icon-trend-down" />,
-  Minus: () => <div data-testid="icon-minus" />
+  Minus: () => <div data-testid="icon-minus" />,
+  ChevronLeft: () => <div data-testid="icon-chevron-left" />,
+  ChevronRight: () => <div data-testid="icon-chevron-right" />
 }));
 
 // Karena komponen adalah Server Component (async function)
@@ -28,7 +30,8 @@ jest.mock('@prisma/client', () => {
               trendStatus: 'Meningkat',
               timestamp: new Date('2023-10-10T14:32:00Z')
             }
-          ])
+          ]),
+          count: jest.fn().mockResolvedValue(1)
         },
         profilKecamatan: {
           findMany: jest.fn().mockResolvedValue([

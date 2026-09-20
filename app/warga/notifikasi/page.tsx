@@ -1,13 +1,39 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { getDynamicAlerts } from '@/app/actions/warga';
 
 type DemoState = 'Tinggi' | 'Sedang' | 'Rendah';
 
 export default function WargaNotifikasiPage() {
   const [demoState, setDemoState] = useState<DemoState>('Tinggi');
   const [alertsEnabled, setAlertsEnabled] = useState(true);
+  const [userKecamatan, setUserKecamatan] = useState<string>('');
+  const [dbAlerts, setDbAlerts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const savedKecamatan = localStorage.getItem('userKecamatan') || '';
+    if (savedKecamatan) {
+      setUserKecamatan(savedKecamatan);
+    }
+
+    getDynamicAlerts(savedKecamatan || undefined)
+      .then((res) => {
+        if (res.activeAlert) {
+          const risk = res.activeAlert.statusRisiko as DemoState;
+          if (risk === 'Tinggi' || risk === 'Sedang' || risk === 'Rendah') {
+            setDemoState(risk);
+          }
+        }
+        if (res.recentAlerts && res.recentAlerts.length > 0) {
+          setDbAlerts(res.recentAlerts);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching dynamic alerts:', err);
+      });
+  }, []);
 
   const handleToggleAlerts = () => {
     setAlertsEnabled(!alertsEnabled);
@@ -28,18 +54,16 @@ export default function WargaNotifikasiPage() {
       if (permission === 'granted') {
         const title = 'RobSense: Waspada Genangan';
         const options = {
-          body: 'Debit air laut terpantau meningkat. Harap waspada.',
+          body: `Debit air laut terpantau meningkat di pesisir Semarang${userKecamatan ? ` (${userKecamatan})` : ''}. Harap waspada.`,
           icon: '/logo.jpeg'
         };
 
         if ('serviceWorker' in navigator) {
           let registration = await navigator.serviceWorker.getRegistration();
           
-          // Paksa registrasi manual jika next-pwa gagal inject otomatis di App Router
           if (!registration) {
             try {
               registration = await navigator.serviceWorker.register('/sw.js');
-              // Tunggu sampai SW benar-benar aktif
               await navigator.serviceWorker.ready;
             } catch (regError: any) {
               alert('Gagal registrasi SW manual: ' + regError.message);
@@ -50,7 +74,6 @@ export default function WargaNotifikasiPage() {
             try {
               await registration.showNotification(title, options);
             } catch (swError: any) {
-              // Jika Service Worker gagal, coba native Notification
               try {
                 new Notification(title, options);
               } catch (nativeError: any) {
@@ -78,23 +101,23 @@ export default function WargaNotifikasiPage() {
   return (
     <div className="flex flex-col min-h-full bg-[#F8F9FB] p-6 pb-8 pt-8 relative">
       
-      {/* Demo Controls (Khusus Presentasi) */}
+      {/* Demo Controls (Khusus Presentasi & Pengujian Cepat) */}
       <div className="absolute top-2 right-2 flex bg-white rounded-full shadow-md border border-gray-200 overflow-hidden z-50 text-[10px] font-bold">
         <button 
           onClick={() => setDemoState('Tinggi')}
-          className={`px-3 py-1.5 ${demoState === 'Tinggi' ? 'bg-red-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+          className={`px-3 py-1.5 transition-colors ${demoState === 'Tinggi' ? 'bg-red-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
         >
           Demo: Merah
         </button>
         <button 
           onClick={() => setDemoState('Sedang')}
-          className={`px-3 py-1.5 border-l border-r border-gray-200 ${demoState === 'Sedang' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+          className={`px-3 py-1.5 border-l border-r border-gray-200 transition-colors ${demoState === 'Sedang' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
         >
           Demo: Oranye
         </button>
         <button 
           onClick={() => setDemoState('Rendah')}
-          className={`px-3 py-1.5 ${demoState === 'Rendah' ? 'bg-green-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+          className={`px-3 py-1.5 transition-colors ${demoState === 'Rendah' ? 'bg-green-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
         >
           Demo: Hijau
         </button>
@@ -103,7 +126,14 @@ export default function WargaNotifikasiPage() {
       {/* Header & Toggle */}
       <div className="flex flex-col mb-6 mt-4 gap-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Notifikasi</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Notifikasi</h1>
+            {userKecamatan && (
+              <p className="text-xs font-semibold text-[#254B94] mt-0.5">
+                Wilayah Dipantau: Kec. {userKecamatan}
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
             <span className="text-[10px] font-bold text-gray-700 uppercase tracking-wide">Peringatan</span>
             <div 
@@ -115,7 +145,7 @@ export default function WargaNotifikasiPage() {
           </div>
         </div>
 
-        {/* Tombol Demo Notif Asli */}
+        {/* Tombol Uji Coba Notif */}
         <button 
           onClick={handleTestNotification}
           className="w-full bg-[#254B94]/10 text-[#254B94] text-xs font-bold py-3 rounded-lg border border-[#254B94]/20 flex justify-center items-center gap-2 active:bg-[#254B94]/20 transition-colors"
@@ -125,7 +155,7 @@ export default function WargaNotifikasiPage() {
         </button>
       </div>
       
-      {/* Peringatan Mendesak (Tergantung Demo State) */}
+      {/* Peringatan Mendesak */}
       {demoState === 'Tinggi' && (
         <div className="border border-red-500 rounded-[12px] bg-white p-5 mb-8 shadow-sm relative overflow-hidden animate-in fade-in slide-in-from-top-4">
           <div className="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
@@ -158,10 +188,10 @@ export default function WargaNotifikasiPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
               Lihat Peta Terdampak
             </Link>
-            <button className="w-full border border-gray-300 text-[#254B94] text-center text-sm font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 bg-white">
+            <Link href="/warga/tentang" className="w-full border border-gray-300 text-[#254B94] text-center text-sm font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 bg-white">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               Pelajari Lebih Lanjut
-            </button>
+            </Link>
           </div>
         </div>
       )}
@@ -181,6 +211,9 @@ export default function WargaNotifikasiPage() {
           <p className="text-sm font-bold text-gray-900 mb-4 leading-relaxed">
             Terpantau ada peningkatan debit air di beberapa wilayah pesisir. Harap waspada akan potensi genangan ringan.
           </p>
+          <Link href="/warga/peta" className="w-full bg-orange-600 text-white text-center text-sm font-bold py-2.5 rounded-lg flex items-center justify-center gap-2">
+            Lihat Peta Risiko
+          </Link>
         </div>
       )}
 
@@ -202,58 +235,94 @@ export default function WargaNotifikasiPage() {
         </div>
       )}
 
-
-      {/* Riwayat Peringatan (Statis untuk Demo) */}
+      {/* Riwayat Peringatan Dinamis */}
       <h3 className="text-lg font-bold text-gray-900 mb-4">Riwayat Peringatan</h3>
       
       <div className="flex flex-col gap-3">
-        {/* Item 1 */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 flex gap-4 shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          </div>
-          <div>
-            <div className="flex justify-between items-start mb-1">
-              <h4 className="text-sm font-bold text-gray-900">Pembersihan Saluran Air</h4>
-              <span className="text-[10px] font-semibold text-gray-500">Kemarin</span>
-            </div>
-            <p className="text-xs text-gray-600 leading-relaxed">
-              Jadwal gotong royong pembersihan saluran air di RT 04/RW 02 untuk mengantisipasi musim hujan.
-            </p>
-          </div>
-        </div>
+        {dbAlerts.length > 0 ? (
+          dbAlerts.map((alertItem) => {
+            const dateStr = new Intl.DateTimeFormat('id-ID', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            }).format(new Date(alertItem.timestamp));
 
-        {/* Item 2 */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 flex gap-4 shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-          </div>
-          <div>
-            <div className="flex justify-between items-start mb-1">
-              <h4 className="text-sm font-bold text-gray-900">Perbaikan Pompa Air</h4>
-              <span className="text-[10px] font-semibold text-gray-500">3 Hari Lalu</span>
-            </div>
-            <p className="text-xs text-gray-600 leading-relaxed">
-              Informasi perbaikan rumah pompa Sentiong. Kapasitas pompa berkurang 30% selama 2 hari ke depan.
-            </p>
-          </div>
-        </div>
+            const isHigh = alertItem.statusRisiko === 'Tinggi';
+            const isMedium = alertItem.statusRisiko === 'Sedang';
 
-        {/* Item 3 */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 flex gap-4 shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center shrink-0">
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          </div>
-          <div>
-            <div className="flex justify-between items-start mb-1">
-              <h4 className="text-sm font-bold text-gray-900">Status Siaga Rob Dicabut</h4>
-              <span className="text-[10px] font-semibold text-gray-500">1 Minggu Lalu</span>
+            return (
+              <div key={alertItem.id} className="bg-white border border-gray-200 rounded-xl p-4 flex gap-4 shadow-sm">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                  isHigh ? 'bg-red-100 text-red-600' : isMedium ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
+                }`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="text-sm font-bold text-gray-900">
+                      Kec. {alertItem.kecamatan} ({alertItem.statusRisiko})
+                    </h4>
+                    <span className="text-[10px] font-semibold text-gray-500">{dateStr}</span>
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Kondisi: {alertItem.kondisi || 'Cuaca terpantau'} | Ketinggian air: {alertItem.ketinggianAir ? `${alertItem.ketinggianAir} cm` : 'Normal'} | Tren: {alertItem.trendStatus || 'Stabil'}.
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <>
+            {/* Fallback Demo Items */}
+            <div className="bg-white border border-gray-200 rounded-xl p-4 flex gap-4 shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <div>
+                <div className="flex justify-between items-start mb-1">
+                  <h4 className="text-sm font-bold text-gray-900">Pembersihan Saluran Air</h4>
+                  <span className="text-[10px] font-semibold text-gray-500">Kemarin</span>
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Jadwal gotong royong pembersihan saluran air di RT 04/RW 02 untuk mengantisipasi musim hujan.
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-gray-600 leading-relaxed">
-              Kondisi pasang laut telah kembali normal. Pintu air utara beroperasi optimal.
-            </p>
-          </div>
-        </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl p-4 flex gap-4 shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              </div>
+              <div>
+                <div className="flex justify-between items-start mb-1">
+                  <h4 className="text-sm font-bold text-gray-900">Perbaikan Pompa Air</h4>
+                  <span className="text-[10px] font-semibold text-gray-500">3 Hari Lalu</span>
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Informasi perbaikan rumah pompa Sentiong. Kapasitas pompa berkurang 30% selama 2 hari ke depan.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl p-4 flex gap-4 shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center shrink-0">
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <div>
+                <div className="flex justify-between items-start mb-1">
+                  <h4 className="text-sm font-bold text-gray-900">Status Siaga Rob Dicabut</h4>
+                  <span className="text-[10px] font-semibold text-gray-500">1 Minggu Lalu</span>
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Kondisi pasang laut telah kembali normal. Pintu air utara beroperasi optimal.
+                </p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
     </div>

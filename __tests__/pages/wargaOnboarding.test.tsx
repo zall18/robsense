@@ -12,7 +12,8 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('../../app/actions/warga', () => ({
-  getRiskData: jest.fn()
+  getRiskData: jest.fn(),
+  saveOnboardingResult: jest.fn().mockResolvedValue({ success: true }),
 }));
 
 describe('WargaOnboardingPage', () => {

@@ -1,8 +1,6 @@
 import React from 'react';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
-import { Calendar, Download, TrendingUp, AlertTriangle, ArrowRight, MoreVertical, Filter } from 'lucide-react';
+import prisma from '@/lib/prisma';
+import { Calendar, Download, TrendingUp, AlertTriangle, ArrowRight, MoreVertical, Filter, Users, ShieldAlert } from 'lucide-react';
 import Badge from '@/app/components/Badge';
 import SelectFilter from '@/app/admin/components/SelectFilter';
 import ExportButton from '@/app/admin/components/ExportButton';
@@ -12,16 +10,11 @@ import Link from 'next/link';
 import { assignCoordinates } from '@/app/utils/geo';
 import HistoryDetailModal from '@/app/admin/components/HistoryDetailModal';
 
-const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
-
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   const params = await searchParams;
   const kecamatan = params.kecamatan;
 
-  const [profiles, riwayat, laporanWargaRaw] = await Promise.all([
+  const [profiles, riwayat, laporanWargaRaw, totalLaporanCount] = await Promise.all([
     prisma.profilKecamatan.findMany(),
     prisma.dataCuacaGenangan.findMany({
       where: kecamatan ? { kecamatan } : undefined,
@@ -31,10 +24,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     prisma.laporanWarga.findMany({
       orderBy: { createdAt: 'desc' },
       take: 100
-    })
+    }),
+    prisma.laporanWarga.count()
   ]);
 
   const reports = assignCoordinates(laporanWargaRaw);
+  const highRiskDistrictsCount = profiles.filter(p => p.tingkatRisiko === 'Tinggi').length;
 
   const distinctKecamatan = await prisma.profilKecamatan.findMany({
     select: { namaKecamatan: true },
@@ -117,15 +112,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             {/* Peta Interaktif */}
             <MapWrapper reports={reports} />
             
-            {/* Overlay Info Card */}
+            {/* Overlay Info Card Dinamis */}
             <div className="absolute bottom-6 left-6 z-[1000] bg-white p-4 rounded-xl shadow-lg border border-gray-100 min-w-[200px]">
               <div className="text-[10px] uppercase font-bold text-gray-500 mb-1">Status Real-time</div>
               <div className="flex items-end gap-2 mb-2">
-                <span className="text-3xl font-bold text-red-600 leading-none">18</span>
-                <span className="text-sm font-semibold text-gray-700 pb-0.5">Klaster Aktif</span>
+                <span className="text-3xl font-bold text-red-600 leading-none">{highRiskDistrictsCount}</span>
+                <span className="text-sm font-semibold text-gray-700 pb-0.5">Wilayah Siaga</span>
               </div>
-              <div className="flex items-center gap-1 text-xs font-bold text-red-600">
-                <TrendingUp className="w-3.5 h-3.5" /> +12% Trend vs Kemarin
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-600">
+                <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
+                <span>{totalLaporanCount} Total Laporan Warga</span>
               </div>
             </div>
           </div>

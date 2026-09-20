@@ -12,6 +12,11 @@ export default function WargaLaporPage() {
   const COOLDOWN_DURATION = 5 * 60 * 1000; // 5 minutes
 
   useEffect(() => {
+    const savedKecamatan = localStorage.getItem('userKecamatan');
+    if (savedKecamatan) {
+      setKecamatan(savedKecamatan);
+    }
+
     const lastReport = localStorage.getItem('lastReportTime');
     if (lastReport) {
       const timePassed = Date.now() - parseInt(lastReport);

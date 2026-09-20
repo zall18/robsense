@@ -65,10 +65,11 @@ describe('WargaOnboardingPage', () => {
     
     // Wait for Step 3 to appear
     await waitFor(() => {
-      expect(screen.getByText('Wilayah kamu sangat berisiko')).toBeInTheDocument();
+      expect(screen.getByText('Wilayah Kamu Berisiko Tinggi')).toBeInTheDocument();
     });
     
     expect(screen.getByText('75%')).toBeInTheDocument();
+    expect(screen.getByText(/Perhatian Khusus Pengguna Air Tanah/i)).toBeInTheDocument();
     expect(getRiskData).toHaveBeenCalledWith('Genuk');
   });
 });

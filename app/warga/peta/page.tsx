@@ -6,23 +6,49 @@ import { assignCoordinates } from '@/app/utils/geo';
 import ClientMap from './ClientMap';
 import SearchInput from './SearchInput';
 
+import Link from 'next/link';
+import { cookies } from 'next/headers';
+
 export const revalidate = 0; // Dynamic route
 
 export default async function WargaPetaPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   const params = await searchParams;
+  let cookieKecamatan: string | undefined;
+  let cookieAirType: string | undefined;
+  try {
+    const cookieStore = await cookies();
+    cookieKecamatan = cookieStore.get('userKecamatan')?.value ? decodeURIComponent(cookieStore.get('userKecamatan')!.value) : undefined;
+    cookieAirType = cookieStore.get('userAirType')?.value ? decodeURIComponent(cookieStore.get('userAirType')!.value) : undefined;
+  } catch {
+    // Graceful fallback for testing or static pre-rendering
+  }
+
   const q = params.q?.toLowerCase();
+  const activeKecamatan = q || cookieKecamatan?.toLowerCase();
 
   // Ambil data terbaru dari DataCuacaGenangan
   const updates = await prisma.dataCuacaGenangan.findMany({
     orderBy: { timestamp: 'desc' },
-    take: 4
+    take: 6
   });
 
-  // Ambil laporan warga untuk peta
+  // Prioritaskan update untuk kecamatan pengguna di urutan teratas
+  if (activeKecamatan) {
+    updates.sort((a, b) => {
+      const aIsUser = a.kecamatan.toLowerCase().includes(activeKecamatan);
+      const bIsUser = b.kecamatan.toLowerCase().includes(activeKecamatan);
+      if (aIsUser && !bIsUser) return -1;
+      if (!aIsUser && bIsUser) return 1;
+      return 0;
+    });
+  }
+
+  // Ambil laporan warga untuk peta (filter jika ada pencarian/kecamatan aktif)
+  const filterKecamatan = q;
   const laporanWargaRaw = await prisma.laporanWarga.findMany({
     where: {
       isVerified: true,
-      ...(q ? { kecamatan: { contains: q, mode: 'insensitive' } } : {})
+      ...(filterKecamatan ? { kecamatan: { contains: filterKecamatan, mode: 'insensitive' } } : {})
     },
     orderBy: { createdAt: 'desc' },
     take: 100
@@ -42,8 +68,40 @@ export default async function WargaPetaPage({ searchParams }: { searchParams: Pr
       
       {/* Header */}
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Peta Status Risiko</h1>
-      <p className="text-sm text-gray-600 mb-6">Pantau tingkat risiko wilayah secara real-time.</p>
+      <p className="text-sm text-gray-600 mb-4">Pantau tingkat risiko wilayah secara real-time.</p>
       
+      {/* Personalized User District Banner */}
+      {activeKecamatan && (
+        <div className="bg-gradient-to-r from-blue-900 to-[#254B94] text-white rounded-[12px] p-4 mb-5 shadow-sm flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-200 bg-white/20 px-2 py-0.5 rounded">
+                Wilayah Pantauan Anda
+              </span>
+              {cookieAirType && (
+                <span className="text-[10px] font-bold bg-white/20 text-blue-100 px-2 py-0.5 rounded">
+                  💧 {cookieAirType}
+                </span>
+              )}
+            </div>
+            <h2 className="text-lg font-bold capitalize">
+              Kecamatan {activeKecamatan}
+            </h2>
+            <p className="text-xs text-blue-100 mt-0.5">
+              Menampilkan titik pantau dan status risiko aktif di wilayahmu.
+            </p>
+          </div>
+          {q && (
+            <Link 
+              href="/warga/peta" 
+              className="text-xs bg-white/20 hover:bg-white/30 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors shrink-0 ml-2"
+            >
+              Reset Filter
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* Search Input */}
       <SearchInput />
 

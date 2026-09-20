@@ -23,6 +23,7 @@ jest.mock('@prisma/client', () => {
               tingkatRisiko: 'Tinggi',
               totalPopulasi: 32000,
               penggunaAirTanah: 27200, // 85%
+              pendaftarEdukasi: 420,
             },
             {
               id: '2',
@@ -30,6 +31,7 @@ jest.mock('@prisma/client', () => {
               tingkatRisiko: 'Tinggi',
               totalPopulasi: 45000,
               penggunaAirTanah: 32400, // 72%
+              pendaftarEdukasi: 180,
             }
           ])
         }

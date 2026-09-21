@@ -17,12 +17,14 @@ export default function WargaOnboardingPage() {
   const kecamatanOptions = [
     'Genuk',
     'Semarang Utara',
-    'Pedurungan',
-    'Banyumanik',
+    'Tugu',
     'Gayamsari',
-    'Semarang Tengah',
+    'Pedurungan',
     'Semarang Barat',
-    'Semarang Timur'
+    'Semarang Timur',
+    'Semarang Tengah',
+    'Banyumanik',
+    'Gajahmungkur'
   ];
 
   const handleNextStep1 = () => {
@@ -91,22 +93,27 @@ export default function WargaOnboardingPage() {
         {/* Step 2: Kecamatan */}
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Kamu ada di kecamatan mana?</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Kamu ada di kecamatan mana?</h2>
+            <p className="text-sm text-gray-500 mb-6">Pilih wilayah tempat tinggalmu untuk memantau status risiko hidrologi.</p>
             
             <div className="relative">
-              <input 
-                type="text"
-                list="kecamatan-list"
+              <select 
                 value={kecamatan} 
                 onChange={(e) => setKecamatan(e.target.value)}
-                placeholder="Ketik nama kecamatan..."
-                className="w-full appearance-none bg-white border border-[#254B94] rounded-[8px] px-4 py-3 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#254B94] focus:border-transparent"
-              />
-              <datalist id="kecamatan-list">
+                className="w-full appearance-none bg-[#F4F5FB] border-2 border-[#254B94] rounded-[10px] px-4 py-3.5 text-gray-800 font-semibold text-base focus:outline-none focus:ring-2 focus:ring-[#254B94] focus:border-transparent cursor-pointer"
+              >
+                <option value="" disabled>-- Pilih Kecamatan Tempat Tinggal --</option>
                 {kecamatanOptions.map(opt => (
-                  <option key={opt} value={opt} />
+                  <option key={opt} value={opt}>
+                    Kecamatan {opt}
+                  </option>
                 ))}
-              </datalist>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#254B94]">
+                <svg className="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                </svg>
+              </div>
             </div>
           </div>
         )}

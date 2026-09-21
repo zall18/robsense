@@ -29,4 +29,17 @@ describe('WargaTentangPage', () => {
     expect(screen.queryByText(/Sistem menggunakan algoritma/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Ya, RobSense sepenuhnya gratis/i)).toBeInTheDocument();
   });
+
+  it('renders user registered profile when available in localStorage', () => {
+    localStorage.setItem('userKecamatan', 'Genuk');
+    localStorage.setItem('userAirType', 'Air Tanah');
+
+    render(<WargaTentangPage />);
+    expect(screen.getByText('Profil Wilayah Anda')).toBeInTheDocument();
+    expect(screen.getByText(/Anda berada di Kecamatan/i)).toBeInTheDocument();
+    expect(screen.getByText('Genuk')).toBeInTheDocument();
+    expect(screen.getByText('Air Tanah')).toBeInTheDocument();
+
+    localStorage.clear();
+  });
 });

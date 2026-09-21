@@ -1,12 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Info, Map, Bell, PlusSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Info, Map, Bell, PlusSquare, MapPin, Droplet, RefreshCw } from 'lucide-react';
 import InstallButton from '../components/InstallButton';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function WargaTentangPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [userKecamatan, setUserKecamatan] = useState<string>('');
+  const [userAirType, setUserAirType] = useState<string>('');
+
+  useEffect(() => {
+    const savedKecamatan = localStorage.getItem('userKecamatan') || '';
+    const savedAirType = localStorage.getItem('userAirType') || '';
+    if (savedKecamatan) setUserKecamatan(savedKecamatan);
+    if (savedAirType) setUserAirType(savedAirType);
+  }, []);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -23,6 +33,66 @@ export default function WargaTentangPage() {
         <h1 className="text-xl font-bold">Tentang RobSense</h1>
         <Info className="w-5 h-5 ml-auto text-[#254B94]" />
       </div>
+
+      {/* Profil Wilayah Terdaftar Pengguna */}
+      {userKecamatan ? (
+        <div className="bg-white rounded-xl shadow-sm border-2 border-[#254B94] p-5 mb-6 animate-in fade-in duration-300">
+          <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#254B94] bg-blue-50 px-2 py-0.5 rounded">
+              Profil Wilayah Anda
+            </span>
+            <Link 
+              href="/warga/onboarding" 
+              className="text-[11px] font-bold text-[#254B94] hover:underline flex items-center gap-1"
+            >
+              <RefreshCw className="w-3 h-3" />
+              Ubah Data
+            </Link>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-red-500 shrink-0" />
+              <p className="text-sm font-bold text-gray-900">
+                Anda berada di Kecamatan <span className="text-[#254B94]">{userKecamatan}</span>
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Droplet className="w-4 h-4 text-[#254B94] shrink-0" />
+              <p className="text-sm font-medium text-gray-800">
+                Fasilitas Air: <span className={`font-bold ${userAirType === 'Air Tanah' ? 'text-amber-700' : 'text-emerald-700'}`}>{userAirType || 'Belum diatur'}</span>
+              </p>
+            </div>
+          </div>
+
+          <div className={`mt-3.5 p-3 rounded-lg text-xs leading-relaxed ${
+            userAirType === 'Air Tanah' 
+              ? 'bg-amber-50 border border-amber-200 text-amber-900' 
+              : 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+          }`}>
+            {userAirType === 'Air Tanah' ? (
+              <p>
+                ⚠️ <strong>Perhatian:</strong> Di wilayah Kecamatan {userKecamatan}, penggunaan sumur bor mandiri berisiko mempercepat laju penurunan muka tanah (amblesan). Pantau rutin peringatan dini dan pertimbangkan beralih ke jaringan pipa PDAM jika telah tersedia.
+              </p>
+            ) : (
+              <p>
+                ✅ <strong>Langkah Positif:</strong> Anda telah membantu upaya konservasi air tanah dengan menggunakan layanan PDAM. Tetap waspada terhadap risiko pasang laut (rob) yang mungkin menggenang di sekitar {userKecamatan}.
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 flex items-center justify-between">
+          <div>
+            <h4 className="text-xs font-bold text-gray-900">Belum Mengatur Wilayah?</h4>
+            <p className="text-[11px] text-gray-500">Atur preferensi wilayah untuk notifikasi risiko yang akurat.</p>
+          </div>
+          <Link href="/warga/onboarding" className="text-xs bg-[#254B94] text-white font-bold px-3 py-2 rounded-lg shrink-0">
+            Atur Sekarang
+          </Link>
+        </div>
+      )}
 
       {/* Card 1: Logo & Vision */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6 flex flex-col items-center text-center">

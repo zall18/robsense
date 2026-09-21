@@ -44,12 +44,14 @@ export default function WargaLaporPage() {
   const kecamatanOptions = [
     'Genuk',
     'Semarang Utara',
-    'Pedurungan',
-    'Banyumanik',
+    'Tugu',
     'Gayamsari',
-    'Semarang Tengah',
+    'Pedurungan',
     'Semarang Barat',
-    'Semarang Timur'
+    'Semarang Timur',
+    'Semarang Tengah',
+    'Banyumanik',
+    'Gajahmungkur'
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {

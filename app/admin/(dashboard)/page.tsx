@@ -215,8 +215,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 <th className="px-6 py-4 font-semibold">Waktu Deteksi</th>
                 <th className="px-6 py-4 font-semibold">Lokasi (Kecamatan)</th>
                 <th className="px-6 py-4 font-semibold">Level Siaga</th>
+                <th className="px-6 py-4 font-semibold text-center">Skor Risiko</th>
+                <th className="px-6 py-4 font-semibold text-center">Tren</th>
                 <th className="px-6 py-4 font-semibold text-center">Ketinggian Air (cm)</th>
-                <th className="px-6 py-4 font-semibold text-center w-16">Status</th>
+                <th className="px-6 py-4 font-semibold text-center w-24">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border-base)]">
@@ -229,12 +231,37 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 if (r.statusRisiko === 'Tinggi') siagaText = 'Bahaya';
                 if (r.statusRisiko === 'Sedang') siagaText = 'Siaga';
 
+                const score = r.riskScore ?? (r.statusRisiko === 'Tinggi' ? 75 : r.statusRisiko === 'Sedang' ? 42 : 18);
+
                 return (
                   <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-gray-700">{timeStr}, Hari ini</td>
                     <td className="px-6 py-4 font-semibold text-[var(--color-text-primary)]">{r.kecamatan}</td>
                     <td className="px-6 py-4">
                        <Badge text={siagaText} variant={r.statusRisiko} />
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="inline-flex items-center gap-1.5 font-bold text-gray-800">
+                        <span className={`w-2 h-2 rounded-full ${score >= 50 ? 'bg-red-500' : score >= 28 ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                        <span>{score}</span>
+                        <span className="text-xs text-gray-400 font-normal">/100</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {r.trendStatus ? (
+                        <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 text-xs font-semibold rounded-full ${
+                          r.trendStatus === 'Meningkat' ? 'bg-red-50 text-red-600' :
+                          r.trendStatus === 'Menurun' ? 'bg-emerald-50 text-emerald-600' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {r.trendStatus === 'Meningkat' && '↗ '}
+                          {r.trendStatus === 'Menurun' && '↘ '}
+                          {r.trendStatus === 'Stabil' && '→ '}
+                          {r.trendStatus}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-center font-bold text-gray-800">{r.ketinggianAir ? r.ketinggianAir.toFixed(1) : '-'}</td>
                     <td className="px-6 py-4 text-center">
@@ -245,7 +272,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               })}
               {riwayat.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                     Tidak ada log riwayat genangan.
                   </td>
                 </tr>

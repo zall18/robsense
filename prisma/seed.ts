@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { calculateDetailedRiskScore } from '../lib/riskEngine';
 
 const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -106,76 +107,109 @@ async function main() {
   console.log(`Upserted ${profilData.length} profil kecamatan.`);
 
   // 3. Buat Dummy Data Genangan & Cuaca (Realistis Semarang Pesisir)
-  const cuacaData = [
+  const cuacaRaw = [
     {
       kecamatan: 'Semarang Utara',
-      statusRisiko: 'Tinggi',
+      kondisi: 'Hujan Sedang',
+      kondisiLaut: 'Tinggi',
       ketinggianAir: 125.4,
       trendStatus: 'Meningkat',
       suhu: 28.5,
       kelembapan: 85,
-      kondisi: 'Hujan Sedang',
+      kecepatanAngin: 22,
     },
     {
       kecamatan: 'Genuk',
-      statusRisiko: 'Tinggi',
+      kondisi: 'Hujan Lebat',
+      kondisiLaut: 'Tinggi',
       ketinggianAir: 95.0,
       trendStatus: 'Meningkat',
       suhu: 29.0,
-      kelembapan: 84,
-      kondisi: 'Hujan Lebat',
+      kelembapan: 88,
+      kecepatanAngin: 25,
     },
     {
       kecamatan: 'Tugu',
-      statusRisiko: 'Sedang',
+      kondisi: 'Hujan Ringan',
+      kondisiLaut: 'Sedang',
       ketinggianAir: 45.8,
       trendStatus: 'Stabil',
       suhu: 29.5,
       kelembapan: 80,
-      kondisi: 'Hujan Ringan',
+      kecepatanAngin: 18,
     },
     {
       kecamatan: 'Gayamsari',
-      statusRisiko: 'Sedang',
+      kondisi: 'Hujan Ringan',
+      kondisiLaut: 'Sedang',
       ketinggianAir: 55.2,
       trendStatus: 'Meningkat',
       suhu: 29.5,
       kelembapan: 82,
-      kondisi: 'Hujan Ringan',
+      kecepatanAngin: 15,
     },
     {
       kecamatan: 'Semarang Barat',
-      statusRisiko: 'Sedang',
+      kondisi: 'Berawan',
+      kondisiLaut: 'Sedang',
       ketinggianAir: 35.0,
       trendStatus: 'Stabil',
       suhu: 30.0,
       kelembapan: 78,
-      kondisi: 'Berawan',
+      kecepatanAngin: 12,
     },
     {
       kecamatan: 'Semarang Tengah',
-      statusRisiko: 'Rendah',
+      kondisi: 'Cerah',
+      kondisiLaut: 'Tenang',
       ketinggianAir: 12.0,
       trendStatus: 'Menurun',
       suhu: 31.0,
       kelembapan: 70,
-      kondisi: 'Cerah',
+      kecepatanAngin: 8,
     },
     {
       kecamatan: 'Banyumanik',
-      statusRisiko: 'Rendah',
+      kondisi: 'Cerah Berawan',
+      kondisiLaut: 'Tenang',
       ketinggianAir: 0.0,
       trendStatus: 'Menurun',
       suhu: 27.0,
       kelembapan: 75,
-      kondisi: 'Cerah Berawan',
+      kecepatanAngin: 10,
     }
   ];
 
-  for (const data of cuacaData) {
-    await prisma.dataCuacaGenangan.create({ data });
+  for (const item of cuacaRaw) {
+    const calc = calculateDetailedRiskScore({
+      kecamatan: item.kecamatan,
+      weatherCondition: item.kondisi,
+      seaCondition: item.kondisiLaut,
+      humidity: item.kelembapan,
+      windSpeed: item.kecepatanAngin,
+    });
+
+    await prisma.dataCuacaGenangan.create({
+      data: {
+        kecamatan: item.kecamatan,
+        statusRisiko: calc.status,
+        riskScore: calc.score,
+        weatherScore: calc.breakdown.weatherScore,
+        seaScore: calc.breakdown.seaScore,
+        subsidenceScore: calc.breakdown.subsidenceScore,
+        vulnerabilityScore: calc.breakdown.vulnerabilityScore,
+        kondisiLaut: item.kondisiLaut,
+        confidenceLevel: calc.confidence.level,
+        ketinggianAir: item.ketinggianAir,
+        trendStatus: item.trendStatus,
+        suhu: item.suhu,
+        kelembapan: item.kelembapan,
+        kecepatanAngin: item.kecepatanAngin,
+        kondisi: item.kondisi,
+      }
+    });
   }
-  console.log(`Inserted ${cuacaData.length} catatan riwayat cuaca/genangan.`);
+  console.log(`Inserted ${cuacaRaw.length} catatan riwayat cuaca/genangan dengan perhitungan multi-faktor.`);
 
   // 4. Buat Contoh Laporan Warga
   const initialReports = [

@@ -27,15 +27,23 @@ model LaporanWarga {
 }
 
 model DataCuacaGenangan {
-  id            String   @id @default(uuid())
-  kecamatan     String
-  statusRisiko  String  // "Tinggi", "Sedang", "Rendah"
-  ketinggianAir Float?  // dalam cm
-  trendStatus   String? // "Meningkat", "Menurun", "Stabil"
-  suhu          Float?
-  kelembapan    Float?
-  kondisi       String?
-  timestamp     DateTime @default(now())
+  id                 String   @id @default(uuid())
+  kecamatan          String
+  statusRisiko       String   // "Tinggi", "Sedang", "Rendah"
+  riskScore          Int?     // Skor numerik 0-100
+  weatherScore       Int?     // Skor Bahaya Cuaca (maks 25)
+  seaScore           Int?     // Skor Bahaya Laut/Gelombang (maks 25)
+  subsidenceScore    Int?     // Skor Kerentanan Amblesan (maks 20)
+  vulnerabilityScore Int?     // Skor Kerentanan Air Tanah & Elevasi (maks 30)
+  kondisiLaut        String?  // Kategori gelombang asli dari BMKG Maritim
+  confidenceLevel    String?  // "Tinggi", "Sedang", "Rendah"
+  ketinggianAir      Float?   // dalam cm
+  trendStatus        String?  // "Meningkat", "Menurun", "Stabil"
+  suhu               Float?
+  kelembapan         Float?
+  kecepatanAngin     Float?
+  kondisi            String?
+  timestamp          DateTime @default(now())
 }
 
 model ProfilKecamatan {

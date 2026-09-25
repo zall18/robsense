@@ -140,23 +140,48 @@ export default async function WargaPetaPage({ searchParams }: { searchParams: Pr
         </div>
         
         <div className="flex flex-col gap-4">
-          {updates.map((update, idx) => (
-            <div key={update.id} className={`flex justify-between items-center ${idx !== updates.length - 1 ? 'border-b border-gray-100 pb-4' : ''}`}>
-              <div>
-                <p className="font-semibold text-gray-900 text-sm">Kecamatan {update.kecamatan}</p>
-                <p className="text-xs text-gray-500 mt-1">Status saat ini {update.statusRisiko}</p>
+          {updates.map((update, idx) => {
+            const score = update.riskScore ?? (
+              update.statusRisiko === 'Tinggi' ? 75 : update.statusRisiko === 'Sedang' ? 42 : 18
+            );
+
+            return (
+              <div key={update.id} className={`flex justify-between items-center ${idx !== updates.length - 1 ? 'border-b border-gray-100 pb-4' : ''}`}>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">Kecamatan {update.kecamatan}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {update.kondisi ? `${update.kondisi} • ` : ''}
+                    {update.ketinggianAir ? `Air ${update.ketinggianAir} cm` : 'Genangan nihil'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="text-right">
+                    <div className="flex items-center justify-end gap-1 font-bold text-xs text-gray-800">
+                      <span className={`w-1.5 h-1.5 rounded-full ${score >= 50 ? 'bg-red-500' : score >= 28 ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                      <span>{score}</span>
+                      <span className="text-[10px] text-gray-400 font-normal">/100</span>
+                    </div>
+                    {update.trendStatus && (
+                      <span className={`text-[10px] font-semibold ${
+                        update.trendStatus === 'Meningkat' ? 'text-red-600' :
+                        update.trendStatus === 'Menurun' ? 'text-emerald-600' :
+                        'text-gray-500'
+                      }`}>
+                        {update.trendStatus === 'Meningkat' ? '↗ Naik' : update.trendStatus === 'Menurun' ? '↘ Turun' : '→ Stabil'}
+                      </span>
+                    )}
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                    update.statusRisiko === 'Tinggi' ? 'bg-[#FDE0E0] text-[#EF4444]' :
+                    update.statusRisiko === 'Sedang' ? 'bg-[#FEF3C7] text-[#F59E0B]' :
+                    'bg-[#DCFCE7] text-[#10B981]'
+                  }`}>
+                    {update.statusRisiko}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  update.statusRisiko === 'Tinggi' ? 'bg-[#FDE0E0] text-[#EF4444]' :
-                  update.statusRisiko === 'Sedang' ? 'bg-[#FEF3C7] text-[#F59E0B]' :
-                  'bg-[#DCFCE7] text-[#10B981]'
-                }`}>
-                  {update.statusRisiko}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {updates.length === 0 && (
             <p className="text-sm text-gray-500 italic text-center py-4">Belum ada pembaruan data cuaca.</p>
           )}

@@ -130,6 +130,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                 <th className="px-6 py-4 font-semibold">Tanggal & Waktu</th>
                 <th className="px-6 py-4 font-semibold">Kecamatan</th>
                 <th className="px-6 py-4 font-semibold">Level Siaga</th>
+                <th className="px-6 py-4 font-semibold text-center">Skor Risiko</th>
                 <th className="px-6 py-4 font-semibold">Ketinggian Air (cm)</th>
                 <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold">Aksi</th>
@@ -144,6 +145,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                 
                 const levelSiaga = getLevelSiaga(row.statusRisiko, row.ketinggianAir);
                 const isWarning = levelSiaga === 'BAHAYA' || levelSiaga === 'SIAGA';
+                const score = row.riskScore ?? (row.statusRisiko === 'Tinggi' ? 75 : row.statusRisiko === 'Sedang' ? 42 : 18);
                 
                 return (
                   <tr key={row.id} className="hover:bg-gray-50 transition-colors">
@@ -151,6 +153,13 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                     <td className="px-6 py-4 text-[var(--color-text-primary)]">{row.kecamatan}</td>
                     <td className="px-6 py-4">
                       <Badge text={levelSiaga} variant={levelSiaga} />
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="inline-flex items-center gap-1.5 font-bold text-gray-800">
+                        <span className={`w-2 h-2 rounded-full ${score >= 50 ? 'bg-red-500' : score >= 28 ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                        <span>{score}</span>
+                        <span className="text-xs text-gray-400 font-normal">/100</span>
+                      </div>
                     </td>
                     <td className={`px-6 py-4 font-semibold ${isWarning ? 'text-[var(--color-risk-high)]' : isWarning === false && levelSiaga === 'WASPADA' ? 'text-yellow-500' : 'text-[var(--color-text-primary)]'}`}>
                       {row.ketinggianAir ? row.ketinggianAir.toFixed(1) : '-'}
@@ -171,7 +180,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
               })}
               {data.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                     Tidak ada data riwayat genangan.
                   </td>
                 </tr>

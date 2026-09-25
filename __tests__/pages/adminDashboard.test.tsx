@@ -2,20 +2,6 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import DashboardPage from '@/app/admin/(dashboard)/page';
 
-jest.mock('lucide-react', () => ({
-  Calendar: () => <div data-testid="icon-calendar" />,
-  Download: () => <div data-testid="icon-download" />,
-  TrendingUp: () => <div data-testid="icon-trending" />,
-  AlertTriangle: () => <div data-testid="icon-alert" />,
-  ArrowRight: () => <div data-testid="icon-arrow" />,
-  MoreVertical: () => <div data-testid="icon-more" />,
-  Filter: () => <div data-testid="icon-filter" />,
-  Plus: () => <div data-testid="icon-plus" />,
-  X: () => <div data-testid="icon-x" />,
-  Upload: () => <div data-testid="icon-upload" />,
-  FileText: () => <div data-testid="icon-filetext" />,
-}));
-
 // Mock MapWrapper
 jest.mock('../../app/components/MapWrapper', () => {
   return function MockMapWrapper() {
@@ -23,57 +9,56 @@ jest.mock('../../app/components/MapWrapper', () => {
   };
 });
 
+
 // Mock Prisma
-jest.mock('@prisma/client', () => {
-  return {
-    PrismaClient: jest.fn().mockImplementation(() => {
-      return {
-        profilKecamatan: {
-          findMany: jest.fn().mockResolvedValue([
-            {
-              id: '1',
-              namaKecamatan: 'Genuk',
-              tingkatRisiko: 'Tinggi',
-              pendaftarEdukasi: 400,
-              totalPopulasi: 32000,
-              penggunaAirTanah: 27200,
-            },
-            {
-              id: '2',
-              namaKecamatan: 'Semarang Utara',
-              tingkatRisiko: 'Sedang',
-              pendaftarEdukasi: 120,
-              totalPopulasi: 45000,
-              penggunaAirTanah: 32400,
-            }
-          ])
+jest.mock('../../lib/prisma', () => {
+  const mockPrisma = {
+    profilKecamatan: {
+      findMany: jest.fn().mockResolvedValue([
+        {
+          id: '1',
+          namaKecamatan: 'Genuk',
+          tingkatRisiko: 'Tinggi',
+          pendaftarEdukasi: 400,
+          totalPopulasi: 32000,
+          penggunaAirTanah: 27200,
         },
-        dataCuacaGenangan: {
-          findMany: jest.fn().mockResolvedValue([
-            {
-              id: '101',
-              kecamatan: 'Genuk',
-              statusRisiko: 'Tinggi',
-              ketinggianAir: 45.2,
-              timestamp: new Date('2023-10-10T14:32:00Z')
-            }
-          ])
-        },
-        laporanWarga: {
-          findMany: jest.fn().mockResolvedValue([]),
-          count: jest.fn().mockResolvedValue(100),
+        {
+          id: '2',
+          namaKecamatan: 'Semarang Utara',
+          tingkatRisiko: 'Sedang',
+          pendaftarEdukasi: 120,
+          totalPopulasi: 45000,
+          penggunaAirTanah: 32400,
         }
-      };
-    })
+      ])
+    },
+    dataCuacaGenangan: {
+      findMany: jest.fn().mockResolvedValue([
+        {
+          id: '101',
+          kecamatan: 'Genuk',
+          statusRisiko: 'Tinggi',
+          ketinggianAir: 45.2,
+          timestamp: new Date('2023-10-10T14:32:00Z')
+        }
+      ])
+    },
+    laporanWarga: {
+      findMany: jest.fn().mockResolvedValue([]),
+      count: jest.fn().mockResolvedValue(100),
+    }
+  };
+
+  return {
+    __esModule: true,
+    default: mockPrisma,
+    prisma: mockPrisma,
   };
 });
-// Mock pg
-jest.mock('pg', () => {
-  return { Pool: jest.fn() };
-});
-jest.mock('@prisma/adapter-pg', () => {
-  return { PrismaPg: jest.fn() };
-});
+
+
+
 
 describe('Halaman Dashboard Utama', () => {
   it('berhasil merender semua komponen utama', async () => {

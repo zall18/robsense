@@ -77,120 +77,116 @@ Sistem ini bergantung pada data terbuka pemerintah. Kami memberikan atribusi pen
 
 ---
 
-# Panduan Instalasi RobSense (`zall18/robsense`)
+# 🚀 Panduan Instalasi & Menjalankan RobSense
 
-Repositori GitHub: [https://github.com/zall18/robsense](https://github.com/zall18/robsense)
+Repositori Resmi: [https://github.com/zall18/robsense](https://github.com/zall18/robsense)
 
 ---
 
 ## 📋 Prasyarat Sistem
 
-Sebelum memulai instalasi, pastikan sistem Anda telah terpasang:
-- **Git** (versi terbaru)
-- **Node.js** (LTS disarankan, v18+ / v20+) & **npm** / **yarn** / **pnpm** *(jika project berbasis JavaScript/TypeScript/Web/IoT Dashboard)*
-- **Python 3.9+** & **pip** *(jika project berbasis Backend/AI/IoT Python)*
-- **Arduino IDE / PlatformIO** *(jika terdapat modul firmware microcontroller/ESP32/Arduino)*
+Sebelum memulai instalasi, pastikan sistem pengujian Anda telah memenuhi prasyarat berikut:
+- **Node.js**: v18.17.0+ atau v20.x LTS (disarankan)
+- **Package Manager**: `npm` (v9+) / `pnpm` / `yarn`
+- **Database**: PostgreSQL (dapat menggunakan instance lokal atau cloud seperti **Supabase**)
+- **Browser Modern**: Chrome / Edge / Firefox / Safari (Mendukung Service Worker untuk PWA)
 
 ---
 
-## 🚀 Langkah-langkah Instalasi
+## ⚙️ Langkah-langkah Instalasi Lokal
 
 ### 1. Kloning Repositori
-Buka terminal / command prompt dan jalankan perintah:
-
+Buka terminal dan jalankan:
 ```bash
 git clone https://github.com/zall18/robsense.git
 cd robsense
 ```
 
----
-
-### 2. Instalasi Dependensi (Sesuai Stack Project)
-
-#### Opsi A: Jika Berbasis Node.js / JavaScript / TypeScript
-Jika di dalam repository terdapat file `package.json`:
-
+### 2. Instalasi Dependensi
+Pasang seluruh dependensi proyek menggunakan npm:
 ```bash
-# Menggunakan npm
 npm install
-
-# Atau menggunakan yarn
-yarn install
-
-# Atau menggunakan pnpm
-pnpm install
 ```
 
-#### Opsi B: Jika Berbasis Python
-Jika di dalam repository terdapat file `requirements.txt` atau `pyproject.toml`:
-
+### 3. Konfigurasi Environment Variable (`.env`)
+Salin file template `.env.example` menjadi `.env`:
 ```bash
-# 1. Buat virtual environment (opsional namun disarankan)
-python -m venv venv
+cp .env.example .env
+```
+Sesuaikan konfigurasi koneksi database Anda di dalam file `.env`:
+- `DATABASE_URL`: URI koneksi PostgreSQL / Supabase pooler (port 6543)
+- `DIRECT_URL`: URI koneksi langsung PostgreSQL (port 5432)
+- `ADMIN_EMAIL` & `ADMIN_PASSWORD`: Kredensial login dashboard admin
 
-# Aktifkan virtual environment:
-# - Linux/macOS:
-source venv/bin/activate
-# - Windows (CMD/PowerShell):
-venv\Scripts\activate
+### 4. Setup Database & Seed Data
+Generate Prisma Client dan populate data inisial wilayah kecamatan Kota Semarang:
+```bash
+# 1. Sinkronisasi skema ke database
+npx prisma db push
 
-# 2. Install dependensi
-pip install -r requirements.txt
+# 2. Seeding profil kecamatan, riwayat genangan, dan data awal
+npx prisma db seed
 ```
 
----
-
-### 3. Konfigurasi Environment (`.env`)
-
-Jika project membutuhkan variabel lingkungan (database, port, API keys, atau MQTT broker untuk sensor IoT):
-
-1. Duplikasi file konfigurasi contoh (jika tersedia):
-   ```bash
-   cp .env.example .env
-   ```
-2. Sesuaikan konfigurasi pada file `.env` sesuai kebutuhan server/perangkat Anda.
-
----
-
-### 4. Menjalankan Aplikasi
-
-#### Untuk Aplikasi Node.js / Web:
+### 5. Menjalankan Server Development
+Jalankan dev server Next.js:
 ```bash
-# Mode development
 npm run dev
-# atau
-npm start
 ```
-Akses melalui browser di `http://localhost:3000` atau port yang ditentukan.
+Buka peramban di:
+- **Portal Publik Warga**: [http://localhost:3000/warga/peta](http://localhost:3000/warga/peta)
+- **Dashboard Admin**: [http://localhost:3000/admin](http://localhost:3000/admin) *(Email: `admin@robsense.id`, Password: `admin123`)*
 
-#### Untuk Backend / Script Python:
+---
+
+## 🧪 Pengujian Otomatis (Automated Testing)
+
+RobSense dilengkapi dengan **37 skenario pengujian** otomatis menggunakan **Jest** dan **React Testing Library** yang mencakup:
+- **Unit Testing**: *Weighted Risk Engine* BNPB No.2/2012, algoritma koordinat deterministik, dan autentikasi admin.
+- **Component Testing**: Komponen UI atomik, tombol interaktif, dan status badge.
+- **Page Integration Testing**: Portal warga (Peta, Onboarding, Notifikasi, Lapor) dan Dashboard admin (History, Education Priority, Water Source Monitoring).
+
+Jalankan seluruh test suite dengan:
 ```bash
-python app.py
-# atau
-python main.py
+npm test
+```
+*(Seluruh 13 test suite dikonfigurasi untuk pass 100% tanpa external database leak).*
+
+Untuk pemeriksaan *static code analysis* dan *linter*:
+```bash
+npm run lint
 ```
 
 ---
 
-### 5. (Opsional) Setup Microcontroller / Sensor IoT
-Jika repository menyertakan kode firmware untuk Arduino / ESP8266 / ESP32:
-1. Buka folder sketch firmware di **Arduino IDE** atau **VS Code (PlatformIO)**.
-2. Pasang library sensor yang dibutuhkan (melalui *Library Manager*).
-3. Sesuaikan konfigurasi WiFi SSID, Password, dan IP Server / Endpoint MQTT.
-4. Hubungkan board ke port USB dan lakukan **Upload**.
+## 📁 Struktur Direktori Proyek
+
+```
+robsense/
+├── app/                  # Next.js App Router
+│   ├── actions/          # Next.js Server Actions (Database mutation & queries)
+│   ├── admin/            # Route terproteksi untuk Dashboard Puskesmas & Pemkot
+│   ├── api/              # API Routes (BMKG sync, risk calculation, webhooks)
+│   ├── components/       # Komponen UI bersama (MapWrapper, Badge, Topbar, dll.)
+│   └── warga/            # Portal publik warga (PWA, Peta, Form Lapor, Edukasi)
+├── lib/                  # Logika Bisnis Inti & Algoritma
+│   ├── riskEngine.ts     # Multi-Factor Weighted Risk Scoring Engine (BNPB)
+│   ├── fetchWeather.ts   # Integrasi API Prakiraan BMKG & BMKG Maritim
+│   ├── geo.ts            # Utilitas spasial & jitter deterministik koordinat
+│   └── prisma.ts         # Singleton Prisma Client & Database Pooler
+├── prisma/               # Skema Database & Migrasi
+│   ├── schema.prisma     # Definisi model PostgreSQL
+│   └── seed.ts           # Seeder profil kecamatan Kota Semarang
+├── __tests__/            # Automated Test Suites (Jest & RTL)
+│   ├── components/       # Pengujian komponen visual
+│   ├── pages/            # Pengujian integrasi alur halaman
+│   └── utils/            # Pengujian matematis algoritma & keamanan
+└── public/               # Asset statis, ikon PWA, manifest, & service worker
+```
 
 ---
 
-## 🛠️ Troubleshooting
+## 📄 Lisensi & Hak Cipta
+Dikembangkan oleh Tim RobSense untuk **Diponegoro Software Development Competition (DSDC) ANFORCOM 2026**.
+Seluruh data publik cuaca mengacu pada atribusi resmi BMKG Republik Indonesia.
 
-- **Port Conflict / Error `EADDRINUSE`:**  
-  Pastikan port default aplikasi tidak digunakan oleh layanan lain atau ubah port di `.env`.
-- **Modul/Library Tidak Ditemukan:**  
-  Jalankan ulang `npm install` atau `pip install -r requirements.txt`.
-- **Izin Akses Git:**  
-  Pastikan koneksi internet stabil dan URL repository dapat diakses publik.
-
----
-
-## 📄 Lisensi & Kontribusi
-Silakan buka *Issue* atau kirim *Pull Request* pada repositori resmi jika Anda menemukan bug atau ingin menambahkan fitur baru.

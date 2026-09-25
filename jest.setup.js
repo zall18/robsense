@@ -43,3 +43,21 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: jest.fn(),
   })),
 });
+
+// Universal Lucide icon mock using Proxy to prevent 'undefined component' errors
+const React = require('react');
+jest.mock('lucide-react', () => {
+  return new Proxy({}, {
+    get: (target, prop) => {
+      if (prop === '__esModule') return true;
+      const MockIcon = (props) => React.createElement('span', {
+        'data-testid': `icon-${String(prop).toLowerCase()}`,
+        ...props
+      });
+      MockIcon.displayName = String(prop);
+      return MockIcon;
+    }
+  });
+});
+
+

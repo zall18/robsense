@@ -1,0 +1,39 @@
+name: RobSense CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate:
+    name: Lint & Automated Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Static Code Analysis (ESLint)
+        run: npm run lint
+
+      - name: Run Jest Test Suites
+        run: npm test -- --coverage
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/robsense_test?pgbouncer=true"
+          ADMIN_EMAIL: "admin@robsense.id"
+          ADMIN_PASSWORD: "admin123"
+          ADMIN_SESSION_SECRET: "ci_secret_key_dsdc_2026"

@@ -2,6 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import WargaNotifikasiPage from '../../app/warga/notifikasi/page';
 
+jest.mock('@/app/actions/warga', () => ({
+  getDynamicAlerts: jest.fn().mockResolvedValue([]),
+  getLaporanCount: jest.fn().mockResolvedValue(0),
+}));
+
+
 describe('WargaNotifikasiPage', () => {
   it('renders Demo Controls and Urgent Warning by default', () => {
     render(<WargaNotifikasiPage />);
